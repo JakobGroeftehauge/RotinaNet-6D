@@ -39,9 +39,6 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..models.retinanet import retinanet_bbox
 from ..preprocessing.csv_generator import CSVGenerator
-from ..preprocessing.kitti import KittiGenerator
-from ..preprocessing.open_images import OpenImagesGenerator
-from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.anchors import make_shapes_callback
 from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.gpu import setup_gpu
@@ -256,42 +253,7 @@ def create_generators(args, preprocess_image):
         transform_generator = random_transform_generator(flip_x_chance=0.5)
         visual_effect_generator = None
 
-    if args.dataset_type == 'coco':
-        # import here to prevent unnecessary dependency on cocoapi
-        from ..preprocessing.coco import CocoGenerator
-
-        train_generator = CocoGenerator(
-            args.coco_path,
-            'train2017',
-            transform_generator=transform_generator,
-            visual_effect_generator=visual_effect_generator,
-            **common_args
-        )
-
-        validation_generator = CocoGenerator(
-            args.coco_path,
-            'val2017',
-            shuffle_groups=False,
-            **common_args
-        )
-    elif args.dataset_type == 'pascal':
-        train_generator = PascalVocGenerator(
-            args.pascal_path,
-            'train',
-            image_extension=args.image_extension,
-            transform_generator=transform_generator,
-            visual_effect_generator=visual_effect_generator,
-            **common_args
-        )
-
-        validation_generator = PascalVocGenerator(
-            args.pascal_path,
-            'val',
-            image_extension=args.image_extension,
-            shuffle_groups=False,
-            **common_args
-        )
-    elif args.dataset_type == 'csv':
+    if args.dataset_type == 'csv':
         train_generator = CSVGenerator(
             args.annotations,
             args.classes,
@@ -309,44 +271,6 @@ def create_generators(args, preprocess_image):
             )
         else:
             validation_generator = None
-    elif args.dataset_type == 'oid':
-        train_generator = OpenImagesGenerator(
-            args.main_dir,
-            subset='train',
-            version=args.version,
-            labels_filter=args.labels_filter,
-            annotation_cache_dir=args.annotation_cache_dir,
-            parent_label=args.parent_label,
-            transform_generator=transform_generator,
-            visual_effect_generator=visual_effect_generator,
-            **common_args
-        )
-
-        validation_generator = OpenImagesGenerator(
-            args.main_dir,
-            subset='validation',
-            version=args.version,
-            labels_filter=args.labels_filter,
-            annotation_cache_dir=args.annotation_cache_dir,
-            parent_label=args.parent_label,
-            shuffle_groups=False,
-            **common_args
-        )
-    elif args.dataset_type == 'kitti':
-        train_generator = KittiGenerator(
-            args.kitti_path,
-            subset='train',
-            transform_generator=transform_generator,
-            visual_effect_generator=visual_effect_generator,
-            **common_args
-        )
-
-        validation_generator = KittiGenerator(
-            args.kitti_path,
-            subset='val',
-            shuffle_groups=False,
-            **common_args
-        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -391,25 +315,8 @@ def parse_args(args):
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
     subparsers.required = True
 
-    coco_parser = subparsers.add_parser('coco')
-    coco_parser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
-
-    pascal_parser = subparsers.add_parser('pascal')
-    pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
-    pascal_parser.add_argument('--image-extension',   help='Declares the dataset images\' extension.', default='.jpg')
-
-    kitti_parser = subparsers.add_parser('kitti')
-    kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')
-
     def csv_list(string):
         return string.split(',')
-
-    oid_parser = subparsers.add_parser('oid')
-    oid_parser.add_argument('main_dir', help='Path to dataset directory.')
-    oid_parser.add_argument('--version',  help='The current dataset version is v4.', default='v4')
-    oid_parser.add_argument('--labels-filter',  help='A list of labels to filter.', type=csv_list, default=None)
-    oid_parser.add_argument('--annotation-cache-dir', help='Path to store annotation cache.', default='.')
-    oid_parser.add_argument('--parent-label', help='Use the hierarchy children of this label.', default=None)
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
