@@ -27,7 +27,7 @@ if __name__ == "__main__" and __package__ is None:
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from .. import models
 from ..preprocessing.csv_generator import CSVGenerator
-from ..preprocessing.pascal_voc import PascalVocGenerator
+#from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.anchors import make_shapes_callback
 from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.eval import evaluate
@@ -43,31 +43,31 @@ def create_generator(args, preprocess_image):
         'preprocess_image': preprocess_image,
     }
 
-    if args.dataset_type == 'coco':
-        # import here to prevent unnecessary dependency on cocoapi
-        from ..preprocessing.coco import CocoGenerator
-
-        validation_generator = CocoGenerator(
-            args.coco_path,
-            'val2017',
-            image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side,
-            config=args.config,
-            shuffle_groups=False,
-            **common_args
-        )
-    elif args.dataset_type == 'pascal':
-        validation_generator = PascalVocGenerator(
-            args.pascal_path,
-            'test',
-            image_extension=args.image_extension,
-            image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side,
-            config=args.config,
-            shuffle_groups=False,
-            **common_args
-        )
-    elif args.dataset_type == 'csv':
+    # if args.dataset_type == 'coco':
+    #     # import here to prevent unnecessary dependency on cocoapi
+    #     from ..preprocessing.coco import CocoGenerator
+    #
+    #     validation_generator = CocoGenerator(
+    #         args.coco_path,
+    #         'val2017',
+    #         image_min_side=args.image_min_side,
+    #         image_max_side=args.image_max_side,
+    #         config=args.config,
+    #         shuffle_groups=False,
+    #         **common_args
+    #     )
+    # elif args.dataset_type == 'pascal':
+    #     validation_generator = PascalVocGenerator(
+    #         args.pascal_path,
+    #         'test',
+    #         image_extension=args.image_extension,
+    #         image_min_side=args.image_min_side,
+    #         image_max_side=args.image_max_side,
+    #         config=args.config,
+    #         shuffle_groups=False,
+    #         **common_args
+    #     )
+    if args.dataset_type == 'csv':
         validation_generator = CSVGenerator(
             args.annotations,
             args.classes,
@@ -90,12 +90,12 @@ def parse_args(args):
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
     subparsers.required = True
 
-    coco_parser = subparsers.add_parser('coco')
-    coco_parser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
-
-    pascal_parser = subparsers.add_parser('pascal')
-    pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
-    pascal_parser.add_argument('--image-extension',   help='Declares the dataset images\' extension.', default='.jpg')
+    # coco_parser = subparsers.add_parser('coco')
+    # coco_parser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
+    #
+    # pascal_parser = subparsers.add_parser('pascal')
+    # pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+    # pascal_parser.add_argument('--image-extension',   help='Declares the dataset images\' extension.', default='.jpg')
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
@@ -163,36 +163,36 @@ def main(args=None):
     # print(model.summary())
 
     # start evaluation
-    if args.dataset_type == 'coco':
-        from ..utils.coco_eval import evaluate_coco
-        evaluate_coco(generator, model, args.score_threshold)
-    else:
-        average_precisions, inference_time = evaluate(
-            generator,
-            model,
-            iou_threshold=args.iou_threshold,
-            score_threshold=args.score_threshold,
-            max_detections=args.max_detections,
-            save_path=args.save_path
-        )
+    # if args.dataset_type == 'coco':
+    #     from ..utils.coco_eval import evaluate_coco
+    #     evaluate_coco(generator, model, args.score_threshold)
+    # else:
+    average_precisions, inference_time = evaluate(
+        generator,
+        model,
+        iou_threshold=args.iou_threshold,
+        score_threshold=args.score_threshold,
+        max_detections=args.max_detections,
+        save_path=args.save_path
+    )
 
-        # print evaluation
-        total_instances = []
-        precisions = []
-        for label, (average_precision, num_annotations) in average_precisions.items():
-            print('{:.0f} instances of class'.format(num_annotations),
-                  generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
-            total_instances.append(num_annotations)
-            precisions.append(average_precision)
+    # print evaluation
+    total_instances = []
+    precisions = []
+    for label, (average_precision, num_annotations) in average_precisions.items():
+        print('{:.0f} instances of class'.format(num_annotations),
+              generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
+        total_instances.append(num_annotations)
+        precisions.append(average_precision)
 
-        if sum(total_instances) == 0:
-            print('No test instances found.')
-            return
+    if sum(total_instances) == 0:
+        print('No test instances found.')
+        return
 
-        print('Inference time for {:.0f} images: {:.4f}'.format(generator.size(), inference_time))
+    print('Inference time for {:.0f} images: {:.4f}'.format(generator.size(), inference_time))
 
-        print('mAP using the weighted average of precisions among classes: {:.4f}'.format(sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)))
-        print('mAP: {:.4f}'.format(sum(precisions) / sum(x > 0 for x in total_instances)))
+    print('mAP using the weighted average of precisions among classes: {:.4f}'.format(sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)))
+    print('mAP: {:.4f}'.format(sum(precisions) / sum(x > 0 for x in total_instances)))
 
 
 if __name__ == '__main__':
