@@ -57,6 +57,7 @@ def draw_boxes(image, boxes, color, thickness=2):
     """
     for b in boxes:
         draw_box(image, b, color, thickness=thickness)
+        print(b)
 
 
 def draw_detections(image, boxes, scores, labels, color=None, label_to_name=None, score_threshold=0.5):
