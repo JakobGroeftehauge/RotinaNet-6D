@@ -198,6 +198,24 @@ def default_submodels(num_classes, num_anchors):
         ('classification', default_classification_model(num_classes, num_anchors))
     ]
 
+def pose_submodels(num_classes, num_anchors):
+    """ Create a list of default submodels used for object detection.
+
+    The default submodels contains a regression submodel and a classification submodel.
+
+    Args
+        num_classes : Number of classes to use.
+        num_anchors : Number of base anchors.
+
+    Returns
+        A list of tuple, where the first element is the name of the submodel and the second element is the submodel itself.
+    """
+    return [
+        ('regression', default_regression_model(4, num_anchors)),
+        ('classification', default_classification_model(num_classes, num_anchors)),
+        ('pose', default_regression_model(12,num_anchors))
+    ]
+
 
 def __build_model_pyramid(name, model, features):
     """ Applies a single submodel to each FPN level.
@@ -292,7 +310,8 @@ def retinanet(
         num_anchors = AnchorParameters.default.num_anchors()
 
     if submodels is None:
-        submodels = default_submodels(num_classes, num_anchors)
+        #submodels = default_submodels(num_classes, num_anchors)
+        submodels = pose_submodels(num_classes, num_anchors)
 
     if pyramid_levels is None:
         pyramid_levels = [3, 4, 5, 6, 7]
