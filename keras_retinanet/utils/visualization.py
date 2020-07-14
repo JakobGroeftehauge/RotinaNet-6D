@@ -36,9 +36,9 @@ def draw_box(image, box, color, thickness=2):
     # plt.axis('off')
     plt.imshow(image)
     plt.show()
-    cv2.imwrite('test.png', image)
-    print('b: ', b)
-    print('color: ', color)
+    # cv2.imwrite('test.png', image)
+    # print('b: ', b)
+    # print('color: ', color)
 
 
 def draw_caption(image, box, caption):
