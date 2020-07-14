@@ -32,7 +32,8 @@ def draw_box(image, box, color, thickness=2):
     b = np.array(box).astype(int)
     cv2.rectangle(image, (b[0], b[1]), (b[2], b[3]), color, thickness, cv2.LINE_AA)
     cv2.imwrite('test.png', image)
-    #print(b)
+    print('b: ', b)
+    print('color: ', color)
 
 
 def draw_caption(image, box, caption):
