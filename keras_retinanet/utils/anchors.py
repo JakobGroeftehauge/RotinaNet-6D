@@ -111,7 +111,8 @@ def anchor_targets_bbox(
             labels_batch[index, positive_indices, annotations['labels'][argmax_overlaps_inds[positive_indices]].astype(int)] = 1
 
             regression_batch[index, :, :-1] = bbox_transform(anchors, annotations['bboxes'][argmax_overlaps_inds, :])
-
+            print('ro: ',annotations['rotations'][argmax_overlaps_inds, :])
+            print('t: ',annotations['translations'][argmax_overlaps_inds, :])
             transformation_batch[index, :, :-1] = np.concatenate((annotations['rotations'][argmax_overlaps_inds, :],annotations['translations'][argmax_overlaps_inds, :]))
         # ignore annotations outside of image
         if image.shape:
