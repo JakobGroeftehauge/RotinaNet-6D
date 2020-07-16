@@ -251,7 +251,7 @@ class CSVGenerator(Generator):
                 float(annot['x2']),
                 float(annot['y2']),
             ]]))
-            annotations['rotations'] = np.concatenate((annotations['rotations'],annot['rot']))
+            annotations['rotations'] = np.concatenate((annotations['rotations'],[annot['rot']]))
             annotations['translations'] = np.concatenate((annotations['translations'],annot['trans']))
             #print annotations for verification!!
         print('load_annotations: ', annotations)
