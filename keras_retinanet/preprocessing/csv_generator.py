@@ -111,13 +111,13 @@ def _read_annotations(csv_reader, classes):
         eps = 0.000001
         dot_prd = np.dot(np.array([R1,R2,R3]),np.array([R4,R5,R6]))
         if abs(dot_prd) > eps:
-            raise ValueError('line {}: the row [R1,R2,R3] ([{},{},{}]) is not orthogonal with [R4,R5,R6]] ({}), dot product is {}'.format(line, R1,R2,R3, R4,R5,R6,dot_prd))
+            raise ValueError('line {}: the row [R1,R2,R3] ([{},{},{}]) is not orthogonal with [R4,R5,R6]] ({},{},{}), dot product is {}'.format(line, R1,R2,R3, R4,R5,R6,dot_prd))
         dot_prd = np.dot(np.array([R1,R2,R3]),np.array([R7,R8,R9]))
         if abs(dot_prd) > eps:
-            raise ValueError('line {}: the row [R1,R2,R3] ([{},{},{}]) is not orthogonal with [R7,R8,R9]] ({}), dot product is {}'.format(line, R1,R2,R3, R7,R8,R9,dot_prd))
+            raise ValueError('line {}: the row [R1,R2,R3] ([{},{},{}]) is not orthogonal with [R7,R8,R9]] ({},{},{}), dot product is {}'.format(line, R1,R2,R3, R7,R8,R9,dot_prd))
         dot_prd = np.dot(np.array([R4,R5,R6]),np.array([R7,R8,R9]))
         if abs(dot_prd) > eps:
-            raise ValueError('line {}: the row [R4,R5,R6] ([{},{},{}]) is not orthogonal with [R7,R8,R9]] ({}), dot product is {}'.format(line, R4,R5,R6, R7,R8,R9,dot_prd))
+            raise ValueError('line {}: the row [R4,R5,R6] ([{},{},{}]) is not orthogonal with [R7,R8,R9]] ({},{},{}), dot product is {}'.format(line, R4,R5,R6, R7,R8,R9,dot_prd))
 
         # check if the current class name is correctly present
         if class_name not in classes:
