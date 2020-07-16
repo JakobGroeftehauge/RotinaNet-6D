@@ -108,7 +108,7 @@ def _read_annotations(csv_reader, classes):
             raise ValueError('line {}: y2 ({}) must be higher than y1 ({})'.format(line, y2, y1))
 
         # Check that rotation matrix is invalid, check for orthogonality
-        eps = 0.000001
+        eps = 0.0001
         dot_prd = np.dot(np.array([R1,R2,R3]),np.array([R4,R5,R6]))
         if abs(dot_prd) > eps:
             raise ValueError('line {}: the row [R1,R2,R3] ([{},{},{}]) is not orthogonal with [R4,R5,R6]] ({},{},{}), dot product is {}'.format(line, R1,R2,R3, R4,R5,R6,dot_prd))
