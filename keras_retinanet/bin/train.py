@@ -251,8 +251,13 @@ def create_generators(args, preprocess_image):
             saturation_range=(0.95, 1.05)
         )
     else:
-        transform_generator = random_transform_generator(flip_x_chance=0.5)
-        visual_effect_generator = None
+        transform_generator = None #random_transform_generator()
+        visual_effect_generator = random_visual_effect_generator(
+            contrast_range=(0.9, 1.1),
+            brightness_range=(-.1, .1),
+            hue_range=(-0.05, 0.05),
+            saturation_range=(0.95, 1.05)
+        )
 
     if args.dataset_type == 'csv':
         train_generator = CSVGenerator(
