@@ -377,5 +377,5 @@ class Generator(keras.utils.Sequence):
         """
         group = self.groups[index]
         inputs, targets = self.compute_input_output(group)
-
+        print('get_item: ', targets)
         return inputs, targets

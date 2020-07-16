@@ -69,21 +69,37 @@ def _read_annotations(csv_reader, classes):
         line += 1
 
         try:
-            img_file, x1, y1, x2, y2, class_name = row[:6]
+            img_file, x1, y1, x2, y2, class_name, R1, R2, R3, R4, R5, R6, R7, R8, R9, T1, T2, T3 = row[:18]
         except ValueError:
-            raise_from(ValueError('line {}: format should be \'img_file,x1,y1,x2,y2,class_name\' or \'img_file,,,,,\''.format(line)), None)
+            raise_from(ValueError('line {}: format should be \'img_file,x1,y1,x2,y2,class_name,R1, R2, R3, R4, R5, R6, R7, R8, R9, T1, T2, T3 \' or \'img_file,,,,,\''.format(line)), None)
 
         if img_file not in result:
             result[img_file] = []
 
         # If a row contains only an image path, it's an image without annotations.
+        # this probably works as is, but can probably be extended to handle all
         if (x1, y1, x2, y2, class_name) == ('', '', '', '', ''):
             continue
 
+        #Bboxes
         x1 = _parse(x1, int, 'line {}: malformed x1: {{}}'.format(line))
         y1 = _parse(y1, int, 'line {}: malformed y1: {{}}'.format(line))
         x2 = _parse(x2, int, 'line {}: malformed x2: {{}}'.format(line))
         y2 = _parse(y2, int, 'line {}: malformed y2: {{}}'.format(line))
+
+        #Poses
+        R1 = _parse(R1, float, 'line {}: malformed R1: {{}}'.format(line))
+        R2 = _parse(R2, float, 'line {}: malformed R2: {{}}'.format(line))
+        R3 = _parse(R3, float, 'line {}: malformed R3: {{}}'.format(line))
+        R4 = _parse(R4, float, 'line {}: malformed R4: {{}}'.format(line))
+        R5 = _parse(R5, float, 'line {}: malformed R5: {{}}'.format(line))
+        R6 = _parse(R6, float, 'line {}: malformed R6: {{}}'.format(line))
+        R7 = _parse(R7, float, 'line {}: malformed R7: {{}}'.format(line))
+        R8 = _parse(R8, float, 'line {}: malformed R8: {{}}'.format(line))
+        R9 = _parse(R9, float, 'line {}: malformed R9: {{}}'.format(line))
+        T1 = _parse(T1, float, 'line {}: malformed T1: {{}}'.format(line))
+        T2 = _parse(T2, float, 'line {}: malformed T2: {{}}'.format(line))
+        T3 = _parse(T3, float, 'line {}: malformed T3: {{}}'.format(line))
 
         # Check that the bounding box is valid.
         if x2 <= x1:
@@ -91,11 +107,25 @@ def _read_annotations(csv_reader, classes):
         if y2 <= y1:
             raise ValueError('line {}: y2 ({}) must be higher than y1 ({})'.format(line, y2, y1))
 
+        # Check that rotation matrix is invalid, check for orthogonality
+        eps = 0.000001
+        dot_prd = np.dot(np.array([R1,R2,R3]),np.array([R4,R5,R6]))
+        if abs(dot_prd) > eps:
+            raise ValueError('line {}: the row [R1,R2,R3] ([{},{},{}]) is not orthogonal with [R4,R5,R6]] ({}), dot product is {}'.format(line, R1,R2,R3, R4,R5,R6,dot_prd))
+        dot_prd = np.dot(np.array([R1,R2,R3]),np.array([R7,R8,R9]))
+        if abs(dot_prd) > eps:
+            raise ValueError('line {}: the row [R1,R2,R3] ([{},{},{}]) is not orthogonal with [R7,R8,R9]] ({}), dot product is {}'.format(line, R1,R2,R3, R7,R8,R9,dot_prd))
+        dot_prd = np.dot(np.array([R4,R5,R6]),np.array([R7,R8,R9]))
+        if abs(dot_prd) > eps:
+            raise ValueError('line {}: the row [R4,R5,R6] ([{},{},{}]) is not orthogonal with [R7,R8,R9]] ({}), dot product is {}'.format(line, R4,R5,R6, R7,R8,R9,dot_prd))
+
         # check if the current class name is correctly present
         if class_name not in classes:
             raise ValueError('line {}: unknown class name: \'{}\' (classes: {})'.format(line, class_name, classes))
 
-        result[img_file].append({'x1': x1, 'x2': x2, 'y1': y1, 'y2': y2, 'class': class_name})
+        # Rotation and translation are matrices/vectors from here on
+        result[img_file].append({'x1': x1, 'x2': x2, 'y1': y1, 'y2': y2, 'class': class_name,
+                                'rot': np.array([[R1,R2,R3],[R4,R5,R6],[R7,R8,R9]]), 'trans': np.array([T1,T2,T3])})
     return result
 
 
@@ -211,7 +241,7 @@ class CSVGenerator(Generator):
         """ Load annotations for an image_index.
         """
         path        = self.image_names[image_index]
-        annotations = {'labels': np.empty((0,)), 'bboxes': np.empty((0, 4))}
+        annotations = {'labels': np.empty((0,)), 'bboxes': np.empty((0, 4)), 'rotations': np.empty((0, 9)), 'translations': np.empty((0,3))}
 
         for idx, annot in enumerate(self.image_data[path]):
             annotations['labels'] = np.concatenate((annotations['labels'], [self.name_to_label(annot['class'])]))
@@ -221,5 +251,8 @@ class CSVGenerator(Generator):
                 float(annot['x2']),
                 float(annot['y2']),
             ]]))
-
+            annotations['rotations'] = np.concatenate((annotations['rotations'],annot['rot']))
+            annotations['translations'] = np.concatenate((annotations['translations'],annot['trans']))
+            #print annotations for verification!!
+        print('load_annotations: ', annotations)
         return annotations
