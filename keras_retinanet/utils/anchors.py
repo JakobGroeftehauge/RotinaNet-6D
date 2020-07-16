@@ -82,11 +82,14 @@ def anchor_targets_bbox(
     for annotations in annotations_group:
         assert('bboxes' in annotations), "Annotations should contain bboxes."
         assert('labels' in annotations), "Annotations should contain labels."
+        assert('rotations' in annotations), "Annotations should contain rotations"
+        assert('translations' in annotations), "Annotations should contain translations"
 
     batch_size = len(image_group)
 
     regression_batch  = np.zeros((batch_size, anchors.shape[0], 4 + 1), dtype=keras.backend.floatx())
     labels_batch      = np.zeros((batch_size, anchors.shape[0], num_classes + 1), dtype=keras.backend.floatx())
+    transformation_batch   = np.zeros((batch_size, anchors.shape[0], 12 + 1), dtype=keras.backend.floatx())
 
     # compute labels and regression targets
     for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
@@ -100,11 +103,16 @@ def anchor_targets_bbox(
             regression_batch[index, ignore_indices, -1]   = -1
             regression_batch[index, positive_indices, -1] = 1
 
+            transformation_batch[index, ignore_indices, -1]   = -1
+            transformation_batch[index, positive_indices, -1] = 1
+
             # compute target class labels
+
             labels_batch[index, positive_indices, annotations['labels'][argmax_overlaps_inds[positive_indices]].astype(int)] = 1
 
             regression_batch[index, :, :-1] = bbox_transform(anchors, annotations['bboxes'][argmax_overlaps_inds, :])
 
+            transformation_batch[index, :, :-1] = np.concatenate(annotations['rotations'][argmax_overlaps_inds, :],annotations['translations'][argmax_overlaps_inds, :])
         # ignore annotations outside of image
         if image.shape:
             anchors_centers = np.vstack([(anchors[:, 0] + anchors[:, 2]) / 2, (anchors[:, 1] + anchors[:, 3]) / 2]).T
@@ -112,6 +120,7 @@ def anchor_targets_bbox(
 
             labels_batch[index, indices, -1]     = -1
             regression_batch[index, indices, -1] = -1
+            transformation_batch[index, indices, -1] = -1
 
     return regression_batch, labels_batch
 
