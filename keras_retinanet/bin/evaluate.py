@@ -17,6 +17,7 @@ limitations under the License.
 import argparse
 import os
 import sys
+import cv2
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
@@ -33,6 +34,7 @@ from ..utils.eval import evaluate
 from ..utils.gpu import setup_gpu
 from ..utils.keras_version import check_keras_version
 from ..utils.tf_version import check_tf_version
+from ..utils.visualization import draw_box
 
 
 def create_generator(args, preprocess_image):
@@ -135,6 +137,15 @@ def main(args=None):
         max_detections=args.max_detections,
         save_path=args.save_path
     )
+
+
+    raw_image = generator.load_image(0)
+    image  = generator.preprocess_image(raw_image.copy())
+    image, scale = generator.resize_image(image)
+    
+    draw_box(raw_image, [10, 10, 100, 100], (0, 255, 0))
+
+    cv2.imwrite("test_eval_img.png", raw_image)
 
     # print evaluation
     total_instances = []
