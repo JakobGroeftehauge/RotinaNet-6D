@@ -241,7 +241,7 @@ def evaluate(
             for (d, r, t) in zip(bbox_detections, rotation_detections, translation_detections):
                 scores = np.append(scores, d[4])
 
-                if annotations.shape[0] == 0:
+                if bbox_annotations.shape[0] == 0:
                     false_positives = np.append(false_positives, 1)
                     true_positives  = np.append(true_positives, 0)
                     continue
