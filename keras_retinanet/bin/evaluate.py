@@ -151,7 +151,7 @@ def main(args=None):
         precisions.append(average_precision)
 
     for label, CEP_ratio in CEP_ratios.items():
-        print('Percentage of correctly estimated (ADD) poses of class ', generator.label_to_name(label), ': {:.4f}}'.format(CEP_ratio))
+        print('Percentage of correctly estimated (ADD) poses of class ', generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
 
     if sum(total_instances) == 0:
         print('No test instances found.')
