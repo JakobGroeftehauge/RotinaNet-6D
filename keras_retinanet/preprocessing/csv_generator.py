@@ -61,9 +61,9 @@ def _read_classes(csv_reader):
         if class_name in result:
             raise ValueError('line {}: duplicate class name: \'{}\''.format(line, class_name))
         result[class_name] = class_id
-        pt_clouds[class_name] = np.load(pt_cloud_path)  # RotinaNet-6D
+        pt_clouds_paths[class_name] = pt_cloud_path  # RotinaNet-6D
         distances[class_name] = distance # RotinaNet-6D
-    return result, pt_clouds, distances
+    return result, pt_clouds_paths, distances
 
 
 def _read_annotations(csv_reader, classes):
@@ -177,13 +177,17 @@ class CSVGenerator(Generator):
         # parse the provided class file
         try:
             with _open_for_csv(csv_class_file) as file:
-                self.classes, self.pt_clouds, self.diag_distances = _read_classes(csv.reader(file, delimiter=','))
+                self.classes, self.pt_clouds_paths, self.diag_distances = _read_classes(csv.reader(file, delimiter=','))
         except ValueError as e:
             raise_from(ValueError('invalid CSV class file: {}: {}'.format(csv_class_file, e)), None)
 
         self.labels = {}
         for key, value in self.classes.items():
             self.labels[value] = key
+
+        self.pt_clouds = {}
+        for key, path in self.pt_clouds_paths.items():
+            self.pt_clouds[key] = np.load(os.path.join(self.base_dir, path))
 
         # csv with img_path, x1, y1, x2, y2, class_name
         try:
@@ -234,6 +238,7 @@ class CSVGenerator(Generator):
         """ Returns the image path for image_index.
         """
         return os.path.join(self.base_dir, self.image_names[image_index])
+
 
     def image_aspect_ratio(self, image_index):
         """ Compute the aspect ratio for an image with image_index.
