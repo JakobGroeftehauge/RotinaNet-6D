@@ -57,7 +57,8 @@ def _compute_ap(recall, precision):
 
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold):
-
+    gt_pose_rotation = gt_pose_rotation.reshape((3,3))
+    detected_pose_rotation = detected_pose_rotation.reshape((3,3))
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
     newPL_ori = newPL_ori + gt_pose_translation
 
