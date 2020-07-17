@@ -55,6 +55,24 @@ def _compute_ap(recall, precision):
     ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
 
+def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
+            detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold):
+
+    newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
+    newPL_ori = newPL_ori + gt_pose_translation
+
+    newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
+    newPL = newPL + detected_pose_translation
+
+    calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
+    meanValue = np.mean( calc )
+
+    if( meanValue < distance_diag*diag_threshold):
+        return 1
+    else:
+        return 0
+    return
+
 
 def _get_detections(generator, model, score_threshold=0.05, max_detections=100, save_path=None):
     """ Get the detections from the model using the generator.
@@ -71,7 +89,10 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
     # Returns
         A list of lists containing the detections for each image in the generator.
     """
-    all_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in range(generator.size())]
+    all_bbox_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in range(generator.size())]
+    all_rotation_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in range(generator.size())]
+    all_translation_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in range(generator.size())]
+
     all_inferences = [None for i in range(generator.size())]
 
     for i in progressbar.progressbar(range(generator.size()), prefix='Running network: '):
@@ -84,7 +105,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         # run network
         start = time.time()
-        boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
+        boxes, scores, labels, transformations = model.predict_on_batch(np.expand_dims(image, axis=0))[:4] #RotinaNet-6D #[:3]
         inference_time = time.time() - start
 
         # correct boxes for image scale
@@ -100,13 +121,15 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         scores_sort = np.argsort(-scores)[:max_detections]
 
         # select detections
-        image_boxes      = boxes[0, indices[scores_sort], :]
-        image_scores     = scores[scores_sort]
-        image_labels     = labels[0, indices[scores_sort]]
-        image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
+        image_boxes         = boxes[0, indices[scores_sort], :]
+        image_rotations     = transformations[0,indices[scores_sort],:9]
+        image_translations  = transformations[0,indices[scores_sort],9:]
+        image_scores        = scores[scores_sort]
+        image_labels        = labels[0, indices[scores_sort]]
+        image_detections    = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
 
         if save_path is not None:
-            # Copy() is necessary, else the boxes will not be printed on the saved images. 
+            # Copy() is necessary, else the boxes will not be printed on the saved images.
             draw_image = raw_image.copy()
             draw_annotations(draw_image, generator.load_annotations(i), label_to_name=generator.label_to_name)
             draw_detections(draw_image, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name, score_threshold=score_threshold)
@@ -117,11 +140,13 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
             if not generator.has_label(label):
                 continue
 
-            all_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
+            all_bbox_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
+            all_translation_detections = image_translations[image_detections[:, -1] == label, :]
+            all_rotation_detections = image_rotations[image_detections[:, -1] == label, :]
 
         all_inferences[i] = inference_time
 
-    return all_detections, all_inferences
+    return all_bbox_detections, all_translation_detections, all_rotation_detections, all_inferences
 
 
 def _get_annotations(generator):
@@ -135,7 +160,9 @@ def _get_annotations(generator):
     # Returns
         A list of lists containing the annotations for each image in the generator.
     """
-    all_annotations = [[None for i in range(generator.num_classes())] for j in range(generator.size())]
+    all_bbox = [[None for i in range(generator.num_classes())] for j in range(generator.size())]
+    all_rotations = [[None for i in range(generator.num_classes())] for j in range(generator.size())]
+    all_translations = [[None for i in range(generator.num_classes())] for j in range(generator.size())]
 
     for i in progressbar.progressbar(range(generator.size()), prefix='Parsing annotations: '):
         # load the annotations
@@ -146,15 +173,18 @@ def _get_annotations(generator):
             if not generator.has_label(label):
                 continue
 
-            all_annotations[i][label] = annotations['bboxes'][annotations['labels'] == label, :].copy()
+            all_bbox[i][label] = annotations['bboxes'][annotations['labels'] == label, :].copy()
+            all_rotations[i][label] = annotations['rotations'][annotations['labels'] == label, :].copy()
+            all_translations[i][label] = annotations['translations'][annotations['labels'] == label, :].copy()
 
-    return all_annotations
+    return all_bbox, all_rotations, all_translations
 
 
 def evaluate(
     generator,
     model,
     iou_threshold=0.5,
+    diag_threshold=0.1,
     score_threshold=0.05,
     max_detections=100,
     save_path=None
@@ -172,19 +202,24 @@ def evaluate(
         A dict mapping class names to mAP scores.
     """
     # gather all detections and annotations
-    all_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
-    all_annotations    = _get_annotations(generator)
+    all_bbox_detections, all_translation_detections, all_rotation_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
+    all_bbox_annotations, all_rotation_annotations, all_translation_annotations  = _get_annotations(generator)
     average_precisions = {}
+    CEP_ratios = {}
 
     # all_detections = pickle.load(open('all_detections.pkl', 'rb'))
     # all_annotations = pickle.load(open('all_annotations.pkl', 'rb'))
     # pickle.dump(all_detections, open('all_detections.pkl', 'wb'))
     # pickle.dump(all_annotations, open('all_annotations.pkl', 'wb'))
 
+
     # process detections and annotations
     for label in range(generator.num_classes()):
         if not generator.has_label(label):
             continue
+
+        accepted_ADD_annotations = 0
+        total_detections = 0
 
         false_positives = np.zeros((0,))
         true_positives  = np.zeros((0,))
@@ -192,12 +227,17 @@ def evaluate(
         num_annotations = 0.0
 
         for i in range(generator.size()):
-            detections           = all_detections[i][label]
-            annotations          = all_annotations[i][label]
-            num_annotations     += annotations.shape[0]
-            detected_annotations = []
+            bbox_detections         = all_bbox_detections[i][label]
+            rotation_detections     = all_rotation_detections[i][label]
+            translation_detections  = all_translation_detections[i][label]
+            bbox_annotations        = all_bbox_annotations[i][label]
+            rotation_annotations    = all_rotation_annotations[i][label]
+            translation_annotations = all_translation_annotations[i][label]
 
-            for d in detections:
+            num_annotations         += bbox_annotations.shape[0]
+            detected_annotations    = []
+
+            for d, r, t in zip(bbox_detections, rotation_detections, translation_detections):
                 scores = np.append(scores, d[4])
 
                 if annotations.shape[0] == 0:
@@ -205,7 +245,7 @@ def evaluate(
                     true_positives  = np.append(true_positives, 0)
                     continue
 
-                overlaps            = compute_overlap(np.expand_dims(d, axis=0), annotations)
+                overlaps            = compute_overlap(np.expand_dims(d, axis=0), bbox_annotations)
                 assigned_annotation = np.argmax(overlaps, axis=1)
                 max_overlap         = overlaps[0, assigned_annotation]
 
@@ -216,6 +256,13 @@ def evaluate(
                 else:
                     false_positives = np.append(false_positives, 1)
                     true_positives  = np.append(true_positives, 0)
+
+                # Change to accomodate multiple objects of same class i one image.
+                pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
+                if _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold):
+                    accepted_ADD_annotations += 1
+                total_detections += 1
+        CEP_ratio = accepted_ADD_annotations / np.maximum(total_detections, np.finfo(np.float64).eps)
 
         # no annotations -> AP for this class is 0 (is this correct?)
         if num_annotations == 0:
@@ -238,8 +285,9 @@ def evaluate(
         # compute average precision
         average_precision  = _compute_ap(recall, precision)
         average_precisions[label] = average_precision, num_annotations
+        CEP_ratios[label] = CEP_ratio
 
     # inference time
     inference_time = np.sum(all_inferences) / generator.size()
 
-    return average_precisions, inference_time
+    return average_precisions, CEP_ratios, inference_time

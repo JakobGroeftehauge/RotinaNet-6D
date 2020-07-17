@@ -77,6 +77,7 @@ def parse_args(args):
     parser.add_argument('--gpu',              help='Id of the GPU to use (as reported by nvidia-smi).', type=int)
     parser.add_argument('--score-threshold',  help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
     parser.add_argument('--iou-threshold',    help='IoU Threshold to count for a positive detection (defaults to 0.5).', default=0.5, type=float)
+    parser.add_argument('--diag-threshold',   help='Diagonal Threshold to count for a positive detection (defaults to 0.1).', default=0.1, type=float)
     parser.add_argument('--max-detections',   help='Max Detections per image (defaults to 100).', default=100, type=int)
     parser.add_argument('--save-path',        help='Path for saving images with detections (doesn\'t work for COCO).')
     parser.add_argument('--image-min-side',   help='Rescale the image so the smallest side is min_side.', type=int, default=800)
@@ -129,23 +130,16 @@ def main(args=None):
     if args.convert_model:
         model = models.convert_model(model, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
 
-    average_precisions, inference_time = evaluate(
+    average_precisions, CEP_ratios, inference_time = evaluate(
         generator,
         model,
         iou_threshold=args.iou_threshold,
+        diag_threshold = args.diag_threshold,
         score_threshold=args.score_threshold,
         max_detections=args.max_detections,
         save_path=args.save_path
     )
 
-
-    raw_image = generator.load_image(0)
-    image  = generator.preprocess_image(raw_image.copy())
-    image, scale = generator.resize_image(image)
-    
-    draw_box(raw_image, [10, 10, 100, 100], (0, 255, 0))
-
-    cv2.imwrite("test_eval_img.png", raw_image)
 
     # print evaluation
     total_instances = []
@@ -156,6 +150,9 @@ def main(args=None):
         total_instances.append(num_annotations)
         precisions.append(average_precision)
 
+    for label, CEP_ratio in CEP_ratios.items():
+        print('Percentage of correctly estimated (ADD) poses of class ', generator.label_to_name(label), ': {:.4f}}'.format(CEP_ratio))
+
     if sum(total_instances) == 0:
         print('No test instances found.')
         return
@@ -164,7 +161,6 @@ def main(args=None):
 
     print('mAP using the weighted average of precisions among classes: {:.4f}'.format(sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)))
     print('mAP: {:.4f}'.format(sum(precisions) / sum(x > 0 for x in total_instances)))
-
 
 if __name__ == '__main__':
     main()

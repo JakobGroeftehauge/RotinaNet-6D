@@ -126,6 +126,11 @@ class Generator(keras.utils.Sequence):
         """
         raise NotImplementedError('label_to_name method not implemented')
 
+    def name_to_pt_cloud(self, name): # RotinaNet-6D
+        """ Get the point cloud for a specific object.
+        """
+        raise NotImplementedError('name_to_pt_cloud method not implemented')
+
     def image_aspect_ratio(self, image_index):
         """ Compute the aspect ratio for an image with image_index.
         """

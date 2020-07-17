@@ -46,19 +46,24 @@ def _read_classes(csv_reader):
     """ Parse the classes file given by csv_reader.
     """
     result = OrderedDict()
+    pt_clouds = OrderedDict()   # RotinaNet-6D
+    distances = OrderedDict()    # RotinaNet-6D
     for line, row in enumerate(csv_reader):
         line += 1
 
         try:
-            class_name, class_id = row
+            class_name, class_id, pt_cloud_path, distance = row
         except ValueError:
-            raise_from(ValueError('line {}: format should be \'class_name,class_id\''.format(line)), None)
+            raise_from(ValueError('line {}: format should be \'class_name,class_id,path_to_point_cloud,diag_distance\''.format(line)), None)
         class_id = _parse(class_id, int, 'line {}: malformed class ID: {{}}'.format(line))
+        distance = _parse(class_id, float, 'line {}: malformed distance: {{}}'.format(line))    # RotinaNet-6D
 
         if class_name in result:
             raise ValueError('line {}: duplicate class name: \'{}\''.format(line, class_name))
         result[class_name] = class_id
-    return result
+        pt_clouds[class_name] = np.load(pt_cloud_path)  # RotinaNet-6D
+        distances[class_name] = distance # RotinaNet-6D
+    return result, pt_clouds, distances
 
 
 def _read_annotations(csv_reader, classes):
@@ -172,7 +177,7 @@ class CSVGenerator(Generator):
         # parse the provided class file
         try:
             with _open_for_csv(csv_class_file) as file:
-                self.classes = _read_classes(csv.reader(file, delimiter=','))
+                self.classes, self.pt_clouds, self.diag_distances = _read_classes(csv.reader(file, delimiter=','))
         except ValueError as e:
             raise_from(ValueError('invalid CSV class file: {}: {}'.format(csv_class_file, e)), None)
 
@@ -219,6 +224,11 @@ class CSVGenerator(Generator):
         """ Map label to name.
         """
         return self.labels[label]
+
+    def name_to_pt_cloud(self, name): # RotinaNet-6D
+        """ Get the point cloud for a specific object.
+        """
+        return self.pt_clouds[name], self.diag_distances[name]
 
     def image_path(self, image_index):
         """ Returns the image path for image_index.
