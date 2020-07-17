@@ -17,5 +17,5 @@ path/to/image.jpg,x1,y1,x2,y2,class_name, R00, R01, R02, R10, R11, R12, R20, R21
 The class name to ID mapping file should contain one mapping per line.
 Each line should use the following format:
 ```
-class_name,id
+class_name,id,path/to/point_cloud.npy,diag_distance
 ```
