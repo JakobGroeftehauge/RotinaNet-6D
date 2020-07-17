@@ -46,7 +46,7 @@ def _read_classes(csv_reader):
     """ Parse the classes file given by csv_reader.
     """
     result = OrderedDict()
-    pt_clouds = OrderedDict()   # RotinaNet-6D
+    pt_cloud_paths = OrderedDict()   # RotinaNet-6D
     distances = OrderedDict()    # RotinaNet-6D
     for line, row in enumerate(csv_reader):
         line += 1
@@ -61,9 +61,9 @@ def _read_classes(csv_reader):
         if class_name in result:
             raise ValueError('line {}: duplicate class name: \'{}\''.format(line, class_name))
         result[class_name] = class_id
-        pt_clouds_paths[class_name] = pt_cloud_path  # RotinaNet-6D
+        pt_cloud_paths[class_name] = pt_cloud_path  # RotinaNet-6D
         distances[class_name] = distance # RotinaNet-6D
-    return result, pt_clouds_paths, distances
+    return result, pt_cloud_paths, distances
 
 
 def _read_annotations(csv_reader, classes):
@@ -177,7 +177,7 @@ class CSVGenerator(Generator):
         # parse the provided class file
         try:
             with _open_for_csv(csv_class_file) as file:
-                self.classes, self.pt_clouds_paths, self.diag_distances = _read_classes(csv.reader(file, delimiter=','))
+                self.classes, self.pt_cloud_paths, self.diag_distances = _read_classes(csv.reader(file, delimiter=','))
         except ValueError as e:
             raise_from(ValueError('invalid CSV class file: {}: {}'.format(csv_class_file, e)), None)
 
@@ -186,7 +186,7 @@ class CSVGenerator(Generator):
             self.labels[value] = key
 
         self.pt_clouds = {}
-        for key, path in self.pt_clouds_paths.items():
+        for key, path in self.pt_cloud_paths.items():
             self.pt_clouds[key] = np.load(os.path.join(self.base_dir, path))
 
         # csv with img_path, x1, y1, x2, y2, class_name
