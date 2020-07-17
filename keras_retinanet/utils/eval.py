@@ -206,7 +206,7 @@ def evaluate(
     all_bbox_annotations, all_rotation_annotations, all_translation_annotations  = _get_annotations(generator)
     average_precisions = {}
     CEP_ratios = {}
-    print('all bbox', all_bbox_detections, 'all_translations', all_translation_detections, 'all_rotation_detections', all_rotation_detections)
+    #print('all bbox', all_bbox_detections, 'all_translations', all_translation_detections, 'all_rotation_detections', all_rotation_detections)
     # all_detections = pickle.load(open('all_detections.pkl', 'rb'))
     # all_annotations = pickle.load(open('all_annotations.pkl', 'rb'))
     # pickle.dump(all_detections, open('all_detections.pkl', 'wb'))
@@ -237,7 +237,7 @@ def evaluate(
             num_annotations         += bbox_annotations.shape[0]
             detected_annotations    = []
 
-            print('bbox:', bbox_detections, ' rot: ', rotation_detections, ' trans: ', translation_detections)
+            #print('bbox:', bbox_detections, ' rot: ', rotation_detections, ' trans: ', translation_detections)
             for (d, r, t) in zip(bbox_detections, rotation_detections, translation_detections):
                 scores = np.append(scores, d[4])
 
