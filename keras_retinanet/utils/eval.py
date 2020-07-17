@@ -141,8 +141,8 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
                 continue
 
             all_bbox_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
-            all_translation_detections = image_translations[image_detections[:, -1] == label, :]
-            all_rotation_detections = image_rotations[image_detections[:, -1] == label, :]
+            all_translation_detections[i][label] = image_translations[image_detections[:, -1] == label, :]
+            all_rotation_detections[i][label] = image_rotations[image_detections[:, -1] == label, :]
 
         all_inferences[i] = inference_time
 
