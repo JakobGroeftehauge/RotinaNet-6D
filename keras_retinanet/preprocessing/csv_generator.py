@@ -178,7 +178,7 @@ class CSVGenerator(Generator):
         # parse the provided class file
         try:
             with _open_for_csv(csv_class_file) as file:
-                self.classes, self.pt_cloud_paths, self.diag_distances = (csv.reader(file, delimiter=','))
+                self.classes, self.pt_cloud_paths, self.diag_distances = _read_classes(csv.reader(file, delimiter=','))
         except ValueError as e:
             raise_from(ValueError('invalid CSV class file: {}: {}'.format(csv_class_file, e)), None)
 
