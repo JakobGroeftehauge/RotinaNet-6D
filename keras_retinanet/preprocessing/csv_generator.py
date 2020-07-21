@@ -190,6 +190,8 @@ class CSVGenerator(Generator):
         for key, path in self.pt_cloud_paths.items():
             self.pt_clouds[key] = np.load(os.path.join(self.base_dir, path))
             
+        for key, dist in self.diag_distances.items():
+        	print("key: ", key, " distance: ", dist):
         # csv with img_path, x1, y1, x2, y2, class_name
         try:
             with _open_for_csv(csv_data_file) as file:
