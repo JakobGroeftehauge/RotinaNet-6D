@@ -240,7 +240,7 @@ def evaluate(
             detected_annotations    = []
 
             #print('bbox:', bbox_detections, ' rot: ', rotation_detections, ' trans: ', translation_detections)
-            for (d, r, t) in zip(bbox_detections, rotation_detections, translation_detections):
+            for idx (d, r, t) in enumerate(zip(bbox_detections, rotation_detections, translation_detections)):
                 scores = np.append(scores, d[4])
 
                 if bbox_annotations.shape[0] == 0:
@@ -261,10 +261,13 @@ def evaluate(
                     true_positives  = np.append(true_positives, 0)
 
                 # Change to accomodate multiple objects of same class i one image.
-                pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
-                if _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold):
-                    accepted_ADD_annotations += 1
-                total_detections += 1
+                
+                # Only evaluate top-1 prediction # RotinaNet-6D 
+                if idx == 0:
+                   pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
+		    if _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold):
+		        accepted_ADD_annotations += 1
+		    total_detections += 1
         CEP_ratio = accepted_ADD_annotations / np.maximum(total_detections, np.finfo(np.float64).eps)
 
         # no annotations -> AP for this class is 0 (is this correct?)
