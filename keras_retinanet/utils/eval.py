@@ -70,9 +70,9 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     
     #print("meanValue: ", meanValue, "  distance diag: ", distance_diag, "  diag threshold: ", diag_threshold)
     if( meanValue < distance_diag*diag_threshold):
-        return 1
+        return True
     else:
-        return 0
+        return False
     return
 
 
