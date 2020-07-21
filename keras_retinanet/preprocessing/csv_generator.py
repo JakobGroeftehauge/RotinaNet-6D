@@ -168,6 +168,7 @@ class CSVGenerator(Generator):
         """
         self.image_names = []
         self.image_data  = {}
+        self.diag_distances = {}
         self.base_dir    = base_dir
 
         # Take base_dir from annotations file if not explicitly specified.
@@ -177,18 +178,18 @@ class CSVGenerator(Generator):
         # parse the provided class file
         try:
             with _open_for_csv(csv_class_file) as file:
-                self.classes, self.pt_cloud_paths, self.diag_distances = _read_classes(csv.reader(file, delimiter=','))
+                self.classes, self.pt_cloud_paths, self.diag_distances = (csv.reader(file, delimiter=','))
         except ValueError as e:
             raise_from(ValueError('invalid CSV class file: {}: {}'.format(csv_class_file, e)), None)
 
         self.labels = {}
         for key, value in self.classes.items():
             self.labels[value] = key
-
+            
         self.pt_clouds = {}
         for key, path in self.pt_cloud_paths.items():
             self.pt_clouds[key] = np.load(os.path.join(self.base_dir, path))
-
+            
         # csv with img_path, x1, y1, x2, y2, class_name
         try:
             with _open_for_csv(csv_data_file) as file:
