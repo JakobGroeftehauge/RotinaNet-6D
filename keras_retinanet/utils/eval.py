@@ -240,7 +240,7 @@ def evaluate(
             detected_annotations    = []
 
             #print('bbox:', bbox_detections, ' rot: ', rotation_detections, ' trans: ', translation_detections)
-            for idx (d, r, t) in enumerate(zip(bbox_detections, rotation_detections, translation_detections)):
+            for idx, (d, r, t) in enumerate(zip(bbox_detections, rotation_detections, translation_detections)):
                 scores = np.append(scores, d[4])
 
                 if bbox_annotations.shape[0] == 0:
