@@ -50,19 +50,20 @@ def _read_classes(csv_reader):
     distances = OrderedDict()    # RotinaNet-6D
     for line, row in enumerate(csv_reader):
         line += 1
-
+        
         try:
             class_name, class_id, pt_cloud_path, distance = row
         except ValueError:
             raise_from(ValueError('line {}: format should be \'class_name,class_id,path_to_point_cloud,diag_distance\''.format(line)), None)
         class_id = _parse(class_id, int, 'line {}: malformed class ID: {{}}'.format(line))
-        distance = _parse(class_id, float, 'line {}: malformed distance: {{}}'.format(line))    # RotinaNet-6D
+        distance = _parse(distance, float, 'line {}: malformed distance: {{}}'.format(line))    # RotinaNet-6D
 
         if class_name in result:
             raise ValueError('line {}: duplicate class name: \'{}\''.format(line, class_name))
         result[class_name] = class_id
         pt_cloud_paths[class_name] = pt_cloud_path  # RotinaNet-6D
         distances[class_name] = distance # RotinaNet-6D
+        
     return result, pt_cloud_paths, distances
 
 
@@ -190,8 +191,6 @@ class CSVGenerator(Generator):
         for key, path in self.pt_cloud_paths.items():
             self.pt_clouds[key] = np.load(os.path.join(self.base_dir, path))
             
-        for key, dist in self.diag_distances.items():
-        	print("key: ", key, " distance: ", dist)
         # csv with img_path, x1, y1, x2, y2, class_name
         try:
             with _open_for_csv(csv_data_file) as file:
