@@ -67,7 +67,8 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
-
+    
+    print("meanValue: ", meanValue, "  distance diag: ", distance_diag, "  diag threshold: ", diag_threshold)
     if( meanValue < distance_diag*diag_threshold):
         return 1
     else:
