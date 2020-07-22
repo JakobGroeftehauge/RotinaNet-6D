@@ -60,7 +60,7 @@ class Evaluate(keras.callbacks.Callback):
         logs = logs or {}
 
         # run evaluation
-        average_precisions, _ = evaluate(
+        average_precisions, CEP_ratios, _ = evaluate(
             self.generator,
             self.model,
             iou_threshold=self.iou_threshold,
@@ -82,6 +82,10 @@ class Evaluate(keras.callbacks.Callback):
             self.mean_ap = sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)
         else:
             self.mean_ap = sum(precisions) / sum(x > 0 for x in total_instances)
+        
+        if self.verbose == 1
+            for label, CEP_ratio in CEP_ratios.items():
+                print('Percentage of correctly estimated (ADD) poses of class ', generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
 
         if self.tensorboard:
             import tensorflow as tf

@@ -70,9 +70,9 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     
     #print("meanValue: ", meanValue, "  distance diag: ", distance_diag, "  diag threshold: ", diag_threshold)
     if( meanValue < distance_diag*diag_threshold):
-        return True
+        return 1
     else:
-        return False
+        return 0
     return
 
 
@@ -269,7 +269,6 @@ def evaluate(
                         accepted_ADD_annotations += 1
                     total_detections += 1
         CEP_ratio = accepted_ADD_annotations / np.maximum(total_detections, np.finfo(np.float64).eps)
-        print("accepted ADD: ", accepted_ADD_annotations, "  All ADD: ", total_detections)
         # no annotations -> AP for this class is 0 (is this correct?)
         if num_annotations == 0:
             average_precisions[label] = 0, 0
