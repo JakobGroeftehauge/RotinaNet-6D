@@ -82,10 +82,6 @@ class Evaluate(keras.callbacks.Callback):
             self.mean_ap = sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)
         else:
             self.mean_ap = sum(precisions) / sum(x > 0 for x in total_instances)
-        
-        if self.verbose == 1:
-            for label, CEP_ratio in CEP_ratios.items():
-                print('Percentage of correctly estimated (ADD) poses of class ', self.generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
 
         if self.tensorboard:
             import tensorflow as tf
@@ -100,3 +96,7 @@ class Evaluate(keras.callbacks.Callback):
 
         if self.verbose == 1:
             print('mAP: {:.4f}'.format(self.mean_ap))
+
+        if self.verbose == 1:
+            for label, CEP_ratio in CEP_ratios.items():
+                print('Percentage of correctly estimated (ADD) poses of class ', self.generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
