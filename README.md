@@ -16,7 +16,7 @@ This project aims to develope a detector cabable of detecting and predicting the
 ## Benchmarking 
 The detector will be benchmarked on the [LINEMOD](https://bop.felk.cvut.cz/datasets/) dataset.
 
-The developed detectors performance on the dataset LINEMOD will be compared to the results introduced in the acrticle [Real-Time Seamless Single Shot 6D Object Pose Prediction](https://arxiv.org/pdf/1711.08848.pdf) which is considered to be state of the art. 
+The developed detectors performance on the LINEMOD dataset will be compared to the results introduced in the acrticle [Real-Time Seamless Single Shot 6D Object Pose Prediction](https://arxiv.org/pdf/1711.08848.pdf) which is considered to be state of the art. 
 
 ## CSV datasets
 The `CSVGenerator` provides an easy way to define your own datasets.
