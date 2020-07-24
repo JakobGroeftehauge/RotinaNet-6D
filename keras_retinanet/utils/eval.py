@@ -63,7 +63,7 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     newPL_ori = newPL_ori + gt_pose_translation #* 1000 # convert from mm to m - TODO: should be configurable
 
     newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
-    newPL = newPL + detected_pose_translation #* 1000 # convert from mm to m - TODO: should be configurable
+    newPL = newPL + detected_pose_translation * 1000 # convert from mm to m - TODO: should be configurable
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
