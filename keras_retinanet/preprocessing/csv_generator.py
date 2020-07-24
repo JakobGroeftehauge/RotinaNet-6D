@@ -103,9 +103,9 @@ def _read_annotations(csv_reader, classes):
         R7 = _parse(R7, float, 'line {}: malformed R7: {{}}'.format(line))
         R8 = _parse(R8, float, 'line {}: malformed R8: {{}}'.format(line))
         R9 = _parse(R9, float, 'line {}: malformed R9: {{}}'.format(line))
-        T1 = _parse(T1, float, 'line {}: malformed T1: {{}}'.format(line))
-        T2 = _parse(T2, float, 'line {}: malformed T2: {{}}'.format(line))
-        T3 = _parse(T3, float, 'line {}: malformed T3: {{}}'.format(line))
+        T1 = _parse(T1 * 1000, float, 'line {}: malformed T1: {{}}'.format(line))
+        T2 = _parse(T2 * 1000, float, 'line {}: malformed T2: {{}}'.format(line))
+        T3 = _parse(T3 * 1000, float, 'line {}: malformed T3: {{}}'.format(line))
 
         # Check that the bounding box is valid.
         if x2 <= x1:
