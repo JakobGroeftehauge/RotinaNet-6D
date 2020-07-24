@@ -131,7 +131,7 @@ def _read_annotations(csv_reader, classes):
 
         # Rotation and translation are matrices/vectors from here on
         result[img_file].append({'x1': x1, 'x2': x2, 'y1': y1, 'y2': y2, 'class': class_name,
-                                'rot': np.array([R1,R2,R3,R4,R5,R6,R7,R8,R9]), 'trans': np.array([T1 * 1000,T2 *1000,T3*1000])})
+                                'rot': np.array([R1,R2,R3,R4,R5,R6,R7,R8,R9]), 'trans': np.array([T1,T2,T3])})
     return result
 
 
