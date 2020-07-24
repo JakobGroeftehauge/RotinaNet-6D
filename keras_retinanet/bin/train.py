@@ -437,6 +437,9 @@ def main(args=None):
     if not args.compute_val_loss:
         validation_generator = None
 
+    for idx, layer in enumerate(model.layer):  
+        print("Layer:", layer)
+
     # start training
     return training_model.fit_generator(
         generator=train_generator,
