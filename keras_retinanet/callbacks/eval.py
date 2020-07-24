@@ -97,6 +97,24 @@ class Evaluate(keras.callbacks.Callback):
         if self.verbose == 1:
             print('mAP: {:.4f}'.format(self.mean_ap))
 
+        # RotinanetNet-6D        
+        ADD_scores = []
+        for label, CEP_ratio in CEP_ratios.items():
+            if self.verbose == 1:
+                print('Percentage of correctly estimated (ADD) poses of class ', self.generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
+            ADD_scores.append(CEP_ratio)
+
+        if self.tensorboard:
+            import tensorflow as tf
+            if tf.version.VERSION < '2.0.0' and self.tensorboard.writer:
+                summary = tf.Summary()
+                summary_value = summary.value.add()
+                summary_value.simple_value = ADD_scores
+                summary_value.tag = "ADD"
+                self.tensorboard.writer.add_summary(summary, epoch)
+
+        logs["ADD"] = ADD_scores
+
         if self.verbose == 1:
             for label, CEP_ratio in CEP_ratios.items():
                 print('Percentage of correctly estimated (ADD) poses of class ', self.generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
