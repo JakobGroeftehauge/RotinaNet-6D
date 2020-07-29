@@ -98,10 +98,9 @@ class Evaluate(keras.callbacks.Callback):
             print('mAP: {:.4f}'.format(self.mean_ap))
 
         # RotinanetNet-6D
-        
         if self.vebose == 1:
             for label, avg_dist in avg_dists.items():
-                print('Mean average 3D distances of class ', self.generator.label_to_name(label), ': {:.4f}'.format(avg_dist)
+                print('Mean average 3D distances of class ', self.generator.label_to_name(label), ': {:.4f}'.format(avg_dist))
             
                  
         ADD_scores = []
