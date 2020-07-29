@@ -268,7 +268,7 @@ def evaluate(
                 if idx == 0:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold):
+                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold)
                     avg_distances.append(avg_dist)
                     if accepted_dist:
                         accepted_ADD_annotations += 1
