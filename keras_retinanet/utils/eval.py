@@ -302,4 +302,4 @@ def evaluate(
     inference_time = np.sum(all_inferences) / generator.size()
 
 
-    return average_precisions, CEP_ratios, mean_avg_distance, inference_time
+    return average_precisions, CEP_ratios, mean_avg_distances, inference_time
