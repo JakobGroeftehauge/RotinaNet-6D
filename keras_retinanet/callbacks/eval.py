@@ -99,7 +99,7 @@ class Evaluate(keras.callbacks.Callback):
 
         # RotinanetNet-6D
         
-        if self.vebose == 1
+        if self.vebose == 1:
             for label, avg_dist in avg_dists.items():
                 print("Mean average 3D distances of class ", )self.generator.label_to_name(label), ': {:.4f}'.format(avg_dist)
             
