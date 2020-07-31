@@ -60,10 +60,10 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
     detected_pose_rotation = detected_pose_rotation.reshape((3,3))
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
-    newPL_ori = newPL_ori + gt_pose_translation #* 1000 # convert from mm to m - TODO: should be configurable
+    #newPL_ori = newPL_ori + gt_pose_translation * 1000 # convert from mm to m - tODO: should be configurable
 
     newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
-    newPL = newPL + detected_pose_translation * 1000 # convert from mm to m - TODO: should be configurable
+    #newPL = newPL + detected_pose_translation * 1000 # convert from mm to m - tODO: should be configurable
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
@@ -242,6 +242,9 @@ def evaluate(
             detected_annotations    = []
 
             #print('bbox:', bbox_detections, ' rot: ', rotation_detections, ' trans: ', translation_detections)
+
+            top_idx = np.argmax(bbox_detections[4, :])
+            print("top idx: ", top_idx)
             for idx, (d, r, t) in enumerate(zip(bbox_detections, rotation_detections, translation_detections)):
                 scores = np.append(scores, d[4])
 
@@ -264,8 +267,8 @@ def evaluate(
 
                 # Change to accomodate multiple objects of same class i one image.
                 
-                # Only evaluate top-1 prediction # RotinaNet-6D 
-                if idx == 0:
+                # Only evaluate top-1 prediction # RotinaNet-6D FIX!!! NOT AS INTENDED
+                if idx == top_idx:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
                     avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold)
