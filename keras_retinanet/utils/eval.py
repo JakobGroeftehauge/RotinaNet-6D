@@ -243,7 +243,7 @@ def evaluate(
 
             #print('bbox:', bbox_detections, ' rot: ', rotation_detections, ' trans: ', translation_detections)
 
-            top_idx = np.argmax(bbox_detections[4, :])
+            top_idx = np.argmax(bbox_detections[:, 4])
             print("top idx: ", top_idx)
             for idx, (d, r, t) in enumerate(zip(bbox_detections, rotation_detections, translation_detections)):
                 scores = np.append(scores, d[4])
