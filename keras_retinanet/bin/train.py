@@ -385,7 +385,6 @@ def main(args=None):
     if args.config:
         args.config = read_config_file(args.config)
 
-    print("config: ", args.config)
     # create the generators
     train_generator, validation_generator = create_generators(args, backbone.preprocess_image)
 
