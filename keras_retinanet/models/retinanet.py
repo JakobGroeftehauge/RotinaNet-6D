@@ -210,10 +210,14 @@ def pose_submodels(num_classes, num_anchors):
     Returns
         A list of tuple, where the first element is the name of the submodel and the second element is the submodel itself.
     """
+    pose = default_regression_model(12,num_anchors, name='pose_submodel')
+    rot, trans = layers.SplitLayer()(pose)
+
     return [
         ('regression', default_regression_model(4, num_anchors)),
         ('classification', default_classification_model(num_classes, num_anchors)),
-        ('pose', default_regression_model(12,num_anchors, name='pose_submodel'))
+        ('rotation', rot),
+        ('translation', trans))
     ]
 
 
