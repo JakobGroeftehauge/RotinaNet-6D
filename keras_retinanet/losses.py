@@ -80,6 +80,7 @@ def smooth_l1(sigma=3.0):
     sigma_squared = sigma ** 2
 
     def _smooth_l1(y_true, y_pred):
+        print(y_pred.shape)
         """ Compute the smooth L1 loss of y_pred w.r.t. y_true.
 
         Args
