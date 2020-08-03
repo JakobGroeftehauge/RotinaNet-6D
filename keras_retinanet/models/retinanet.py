@@ -258,7 +258,7 @@ def pose_submodels(num_classes, num_anchors):
     rot, trans = default_pose_model(12,num_anchors, name='pose_submodel')
     #rot, trans = layers.SplitLayer()(pose.outputs[0])
     #print("outputs",pose.outputs[0][0])
-
+    print("rot", rot) 
     return [
         ('regression', default_regression_model(4, num_anchors)),
         ('classification', default_classification_model(num_classes, num_anchors)),
