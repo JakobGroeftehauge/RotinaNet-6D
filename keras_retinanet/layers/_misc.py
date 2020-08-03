@@ -186,8 +186,8 @@ class ClipBoxes(keras.layers.Layer):
 
 class SplitLayer(keras.layers.Layer):
     def call(self, inputs, **kwargs):
-        #regression = inputs
-        unstacked = backend.unstack(inputs, axis=-1)
+        regression = inputs
+        unstacked = backend.unstack(regression, axis=-1)
         return [keras.backend.stack(unstacked[0:9], axis=2), keras.backend.stack(unstacked[9:], axis=2)]
     def compute_output_shape(self, input_shape):
         return [(input_shape[0:-1], 9), (input_shape[0:-1],3)]
