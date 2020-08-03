@@ -212,7 +212,8 @@ def pose_submodels(num_classes, num_anchors):
     """
     pose = default_regression_model(12,num_anchors, name='pose_submodel')
     #rot, trans = layers.SplitLayer()(pose.outputs[0])
-    print(pose.outputs)
+    print("outputs",pose.outputs)
+    print("output shape", pose.outputs.shape)
 
     return [
         ('regression', default_regression_model(4, num_anchors)),
