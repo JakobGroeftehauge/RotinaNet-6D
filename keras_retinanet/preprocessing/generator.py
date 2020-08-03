@@ -339,7 +339,7 @@ class Generator(keras.utils.Sequence):
             annotations_group,
             self.num_classes()
         )
-        print("batches", batches)
+        #print("batches", batches)
         return list(batches)
 
     def compute_input_output(self, group):
