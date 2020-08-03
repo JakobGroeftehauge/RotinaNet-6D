@@ -89,7 +89,8 @@ def anchor_targets_bbox(
 
     regression_batch  = np.zeros((batch_size, anchors.shape[0], 4 + 1), dtype=keras.backend.floatx())
     labels_batch      = np.zeros((batch_size, anchors.shape[0], num_classes + 1), dtype=keras.backend.floatx())
-    transformation_batch   = np.zeros((batch_size, anchors.shape[0], 12 + 1), dtype=keras.backend.floatx())
+    rotation_batch   = np.zeros((batch_size, anchors.shape[0], 9 + 1), dtype=keras.backend.floatx())
+    translation_batch   = np.zeros((batch_size, anchors.shape[0], 3 + 1), dtype=keras.backend.floatx())
 
     # compute labels and regression targets
     for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
@@ -103,8 +104,11 @@ def anchor_targets_bbox(
             regression_batch[index, ignore_indices, -1]   = -1
             regression_batch[index, positive_indices, -1] = 1
 
-            transformation_batch[index, ignore_indices, -1]   = -1
-            transformation_batch[index, positive_indices, -1] = 1
+            rotation_batch[index, ignore_indices, -1]   = -1
+            rotation_batch[index, positive_indices, -1] = 1
+
+            translation_batch[index, ignore_indices, -1]   = -1
+            translation_batch[index, positive_indices, -1] = 1
 
             # compute target class labels
 
@@ -127,7 +131,7 @@ def anchor_targets_bbox(
             translation_batch[index, indices, -1] = -1
 
 
-    return regression_batch, labels_batch, transformation_batch
+    return regression_batch, labels_batch, orientation_batch, translation_batch
 
 
 def compute_gt_annotations(
