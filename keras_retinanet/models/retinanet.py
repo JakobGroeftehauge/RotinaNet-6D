@@ -217,8 +217,8 @@ def pose_submodels(num_classes, num_anchors):
     return [
         ('regression', default_regression_model(4, num_anchors)),
         ('classification', default_classification_model(num_classes, num_anchors)),
-        ('rotation', pose.outputs[:, :, :9]),
-        ('translation', pose.outputs[:, :,9:])
+        ('rotation', pose.outputs[:][:][:9]),
+        ('translation', pose.outputs[:][:][9:])
     ]
 
 
