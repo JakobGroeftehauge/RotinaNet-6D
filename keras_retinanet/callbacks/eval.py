@@ -60,7 +60,7 @@ class Evaluate(keras.callbacks.Callback):
         logs = logs or {}
 
         # run evaluation
-        average_precisions, _ = evaluate(
+        average_precisions, CEP_ratios, avg_dists, _ = evaluate(
             self.generator,
             self.model,
             iou_threshold=self.iou_threshold,
@@ -96,3 +96,26 @@ class Evaluate(keras.callbacks.Callback):
 
         if self.verbose == 1:
             print('mAP: {:.4f}'.format(self.mean_ap))
+
+       # RotinanetNet-6D
+        if self.verbose == 1:
+            for label, avg_dist in avg_dists.items():
+                print('Mean average 3D distances of class ', self.generator.label_to_name(label), ': {:.4f}'.format(avg_dist))
+
+
+        ADD_scores = []
+        for label, CEP_ratio in CEP_ratios.items():
+            if self.verbose == 1:
+                print('Percentage of correctly estimated (ADD) poses of class ', self.generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
+            ADD_scores.append(CEP_ratio)
+
+        if self.tensorboard:
+            import tensorflow as tf
+            if tf.version.VERSION < '2.0.0' and self.tensorboard.writer:
+                summary = tf.Summary()
+                summary_value = summary.value.add()
+                summary_value.simple_value = ADD_scores
+                summary_value.tag = "ADD"
+                self.tensorboard.writer.add_summary(summary, epoch)
+
+        logs["ADD"] = ADD_scores

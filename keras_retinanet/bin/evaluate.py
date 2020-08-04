@@ -130,7 +130,7 @@ def main(args=None):
     if args.convert_model:
         model = models.convert_model(model, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
 
-    average_precisions, CEP_ratios, inference_time = evaluate(
+    average_precisions, CEP_ratios, _, inference_time = evaluate(
         generator,
         model,
         iou_threshold=args.iou_threshold,

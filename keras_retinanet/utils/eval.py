@@ -59,19 +59,24 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold):
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
     detected_pose_rotation = detected_pose_rotation.reshape((3,3))
+
+    U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
+    det = np.round(np.linalg.det(np.matmul(V_t.T,U.T)))
+    detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
+
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
-    newPL_ori = newPL_ori + gt_pose_translation
+    #newPL_ori = newPL_ori + gt_pose_translation*1000
 
     newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
-    newPL = newPL + detected_pose_translation
+    #newPL = newPL + detected_pose_translation*1000
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
 
     if( meanValue < distance_diag*diag_threshold):
-        return 1
+        return meanValue, 1
     else:
-        return 0
+        return meanValue, 0
     return
 
 
@@ -207,6 +212,7 @@ def evaluate(
     all_bbox_annotations, all_rotation_annotations, all_translation_annotations  = _get_annotations(generator)
     average_precisions = {}
     CEP_ratios = {}
+    mean_avg_distances = {}
     #print('all bbox', all_bbox_detections, 'all_translations', all_translation_detections, 'all_rotation_detections', all_rotation_detections)
     # all_detections = pickle.load(open('all_detections.pkl', 'rb'))
     # all_annotations = pickle.load(open('all_annotations.pkl', 'rb'))
@@ -226,6 +232,7 @@ def evaluate(
         true_positives  = np.zeros((0,))
         scores          = np.zeros((0,))
         num_annotations = 0.0
+        avg_distances = []
 
         for i in range(generator.size()):
             bbox_detections         = all_bbox_detections[i][label]
@@ -239,7 +246,7 @@ def evaluate(
             detected_annotations    = []
 
             #print('bbox:', bbox_detections, ' rot: ', rotation_detections, ' trans: ', translation_detections)
-            for (d, r, t) in zip(bbox_detections, rotation_detections, translation_detections):
+            for idx, (d, r, t) in enumerate(zip(bbox_detections, rotation_detections, translation_detections)):
                 scores = np.append(scores, d[4])
 
                 if bbox_annotations.shape[0] == 0:
@@ -260,12 +267,17 @@ def evaluate(
                     true_positives  = np.append(true_positives, 0)
 
                 # Change to accomodate multiple objects of same class i one image.
-                pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
-                if _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold):
-                    accepted_ADD_annotations += 1
-                total_detections += 1
-        CEP_ratio = accepted_ADD_annotations / np.maximum(total_detections, np.finfo(np.float64).eps)
 
+                # Only evaluate top-1 prediction # RotinaNet-6D FIX!!! NOT AS INTENDED
+                if idx == top_idx:
+                    pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
+
+                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold)
+                    avg_distances.append(avg_dist)
+                    if accepted_dist:
+                        accepted_ADD_annotations += 1
+                    total_detections += 1
+        CEP_ratio = accepted_ADD_annotations / np.maximum(total_detections, np.finfo(np.float64).eps)
         # no annotations -> AP for this class is 0 (is this correct?)
         if num_annotations == 0:
             average_precisions[label] = 0, 0
@@ -288,8 +300,9 @@ def evaluate(
         average_precision  = _compute_ap(recall, precision)
         average_precisions[label] = average_precision, num_annotations
         CEP_ratios[label] = CEP_ratio
+        mean_avg_distances[label] = np.mean(avg_distances)
 
     # inference time
     inference_time = np.sum(all_inferences) / generator.size()
 
-    return average_precisions, CEP_ratios, inference_time
+    return average_precisions, CEP_ratios, mean_avg_distances, inference_time

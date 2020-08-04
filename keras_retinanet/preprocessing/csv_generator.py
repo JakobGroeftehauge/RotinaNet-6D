@@ -56,7 +56,7 @@ def _read_classes(csv_reader):
         except ValueError:
             raise_from(ValueError('line {}: format should be \'class_name,class_id,path_to_point_cloud,diag_distance\''.format(line)), None)
         class_id = _parse(class_id, int, 'line {}: malformed class ID: {{}}'.format(line))
-        distance = _parse(class_id, float, 'line {}: malformed distance: {{}}'.format(line))    # RotinaNet-6D
+        distance = _parse(distance, float, 'line {}: malformed distance: {{}}'.format(line))    # RotinaNet-6D
 
         if class_name in result:
             raise ValueError('line {}: duplicate class name: \'{}\''.format(line, class_name))
@@ -168,6 +168,7 @@ class CSVGenerator(Generator):
         """
         self.image_names = []
         self.image_data  = {}
+        self.diag_distances = {}
         self.base_dir    = base_dir
 
         # Take base_dir from annotations file if not explicitly specified.
