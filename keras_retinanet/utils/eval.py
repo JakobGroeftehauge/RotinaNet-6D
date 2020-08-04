@@ -59,6 +59,11 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold):
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
     detected_pose_rotation = detected_pose_rotation.reshape((3,3))
+
+    U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
+    det = np.round(np.linalg.det(np.matmul(V_t.T,U.T)))
+    detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
+
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
     #newPL_ori = newPL_ori + gt_pose_translation * 1000 # convert from mm to m - tODO: should be configurable
 
@@ -67,7 +72,7 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
-    
+
     #print("meanValue: ", meanValue, "  distance diag: ", distance_diag, "  diag threshold: ", diag_threshold)
     if( meanValue < distance_diag*diag_threshold):
         return meanValue, 1
@@ -107,7 +112,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         # run network
         start = time.time()
-        boxes, scores, labels, transformations = model.predict_on_batch(np.expand_dims(image, axis=0))[:4] #RotinaNet-6D #[:3]
+        boxes, scores, labels, rotations, translations = model.predict_on_batch(np.expand_dims(image, axis=0))[:4] #RotinaNet-6D #[:3]
         inference_time = time.time() - start
 
         # correct boxes for image scale
@@ -124,8 +129,8 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         # select detections
         image_boxes         = boxes[0, indices[scores_sort], :]
-        image_rotations     = transformations[0,indices[scores_sort],:9]
-        image_translations  = transformations[0,indices[scores_sort],9:]
+        image_rotations     = rotations[0,indices[scores_sort],:]
+        image_translations  = translations[0,indices[scores_sort],:]
         image_scores        = scores[scores_sort]
         image_labels        = labels[0, indices[scores_sort]]
         image_detections    = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
@@ -266,7 +271,7 @@ def evaluate(
                     true_positives  = np.append(true_positives, 0)
 
                 # Change to accomodate multiple objects of same class i one image.
-                
+
                 # Only evaluate top-1 prediction # RotinaNet-6D FIX!!! NOT AS INTENDED
                 if idx == top_idx:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
