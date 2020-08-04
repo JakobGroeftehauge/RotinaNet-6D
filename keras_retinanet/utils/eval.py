@@ -269,7 +269,7 @@ def evaluate(
                 # Change to accomodate multiple objects of same class i one image.
 
                 # Only evaluate top-1 prediction # RotinaNet-6D FIX!!! NOT AS INTENDED
-                if idx == top_idx:
+                if idx == 0:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
                     avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold)
