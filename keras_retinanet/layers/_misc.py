@@ -183,12 +183,60 @@ class ClipBoxes(keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         return input_shape[1]
+#  
+# class MaskOutput(keras.layers.Layer):
 
+#     def __init__(self, start_idx, end_idx, **kwargs):
+#         self.end_idx = end_idx
+#         self.start_idx = start_idx
 
-class SplitLayer(keras.layers.Layer):
+#     def call(self, inputs, **kwargs):
+#         return inputs[:, :, self.start_idx:self.end_idx]
+
+#     def compute_output_shape(self, input_shape):
+#         batch, img, n_out = input_shape
+#         return [batch, img, self.end_idx - self.start_idx] 
+
+class ExtractRotation(keras.layer.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def call(self, inputs, **kwargs):
-        regression = inputs
-        unstacked = backend.unstack(regression, axis=-1)
-        return [keras.backend.stack(unstacked[0:9], axis=2), keras.backend.stack(unstacked[9:], axis=2)]
+        batch, img, pos, anchor = inputs.shape
+        inputs.reshape((batch, img, pos, anchor/12), 12)
+        output_init = inputs[:, :, :, :, 0:9]
+        output_flat = output_init.reshape(-1) #flatten
+        output = output_flat.reshape((batch, img, pos, (anchor/12)*9))
+        return output
+
     def compute_output_shape(self, input_shape):
-        return [(input_shape[0:-1], 9), (input_shape[0:-1],3)]
+        batch, img, pos, anchor = input_shape
+        
+        return (batch, img, pos, (anchor/12)*9)
+
+class ExtractTranslation(keras.layer.Layer):
+    def __init__(self, start_idx, end_idx, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs, **kwargs):
+        batch, img, pos, anchor = inputs.shape
+        inputs.reshape((batch, img, pos, anchor/12), 12)
+        output_init = inputs[:, :, :, :, 9:12]
+        output_flat = output_init.reshape(-1) #flatten
+        output = output_flat.reshape((batch, img, pos, (anchor/12)*3))
+        return output
+
+    def compute_output_shape(self, input_shape):
+        batch, img, pos, anchor = input_shape
+        
+        return (batch, img, pos, (anchor/12)*3)
+
+    
+
+#class SplitLayer(keras.layers.Layer):
+#def call(self, inputs, **kwargs):
+#regression = inputs
+#unstacked = backend.unstack(regression, axis=-1)
+#return [keras.backend.stack(unstacked[0:9], axis=2), keras.backend.stack(unstacked[9:], axis=2)]
+#def compute_output_shape(self, input_shape):
+#return [(input_shape[0:-1], 9), (input_shape[0:-1],3)]
