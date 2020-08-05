@@ -203,10 +203,10 @@ class ExtractRotation(keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         batch, img, pos, anchor = inputs.shape
-        inputs.reshape((batch, img, pos, anchor/12), 12)
+        inputs = keras.backend.reshape(inputs, (batch, img, pos, anchor/12), 12)
         output_init = inputs[:, :, :, :, 0:9]
-        output_flat = output_init.reshape(-1) #flatten
-        output = output_flat.reshape((batch, img, pos, (anchor/12)*9))
+        output_flat = keras.backend.reshape(output_init, -1) #flatten
+        output = keras.backend.reshape(output_flat, (batch, img, pos, (anchor/12)*9))
         return output
 
     def compute_output_shape(self, input_shape):
@@ -220,10 +220,10 @@ class ExtractTranslation(keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         batch, img, pos, anchor = inputs.shape
-        inputs.reshape((batch, img, pos, anchor/12), 12)
+        inputs = keras.backend.reshape(inputs, (batch, img, pos, anchor/12), 12)
         output_init = inputs[:, :, :, :, 9:12]
-        output_flat = output_init.reshape(-1) #flatten
-        output = output_flat.reshape((batch, img, pos, (anchor/12)*3))
+        output_flat = keras.backend.reshape(output_init, -1) #flatten
+        output = keras.backend.reshape(output_flat, (batch, img, pos, (anchor/12)*3))
         return output
 
     def compute_output_shape(self, input_shape):
