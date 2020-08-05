@@ -203,16 +203,16 @@ class ExtractRotation(keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         batch, img, pos, anchor = inputs.shape
-        inputs = keras.backend.reshape(inputs, shape=[batch, img, pos, int(anchor/12), 12])
-        output_init = inputs[:, :, :, :, 0:9]
-        output_flat = keras.backend.reshape(output_init, shape=-1) #flatten
-        output = keras.backend.reshape(output_flat, shape=(batch, img, pos, int((anchor/12)*9)))
+        inputs = keras.backend.reshape(-1, 12])
+        output = inputs[:, 0:9]
+        #output_flat = keras.backend.reshape(output_init, shape=-1) #flatten
+        #output = keras.backend.reshape(output_flat, shape=(batch, img, pos, int((anchor/12)*9)))
         return output
 
     def compute_output_shape(self, input_shape):
         batch, img, pos, anchor = input_shape
         
-        return (batch, img, pos, (anchor/12)*9)
+        return (batch*img*pos*anchor/12, (anchor/12)*9)
 
 class ExtractTranslation(keras.layers.Layer):
     def __init__(self, start_idx, end_idx, **kwargs):
@@ -220,16 +220,16 @@ class ExtractTranslation(keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         batch, img, pos, anchor = inputs.shape
-        inputs = keras.backend.reshape(inputs,shape=(batch, img, pos, int(anchor/12), 12))
-        output_init = inputs[:, :, :, :, 9:12]
-        output_flat = keras.backend.reshape(output_init, -1) #flatten
-        output = keras.backend.reshape(output_flat, shape=(batch, img, pos, int((anchor/12)*3)))
+        inputs = keras.backend.reshape(inputs,shape=(-1, 12))
+        output = inputs[:, 9:12]
+        #output_flat = keras.backend.reshape(output_init, -1) #flatten
+        #output = keras.backend.reshape(output_flat, shape=(batch, img, pos, int((anchor/12)*3)))
         return output
 
     def compute_output_shape(self, input_shape):
         batch, img, pos, anchor = input_shape
         
-        return (batch, img, pos, (anchor/12)*3)
+        return (batch*img*pos*anchor/12, (anchor/12)*3)
 
     
 
