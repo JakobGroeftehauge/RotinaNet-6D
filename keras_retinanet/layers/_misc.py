@@ -215,7 +215,7 @@ class ExtractRotation(keras.layers.Layer):
         return (None, 9)
 
 class ExtractTranslation(keras.layers.Layer):
-    def __init__(self, start_idx, end_idx, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
