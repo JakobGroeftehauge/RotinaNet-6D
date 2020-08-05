@@ -259,7 +259,7 @@ class CSVGenerator(Generator):
         path        = self.image_names[image_index]
         annotations = {'labels': np.empty((0,)), 'bboxes': np.empty((0, 4)), 'rotations': np.empty((0, 9)), 'translations': np.empty((0,3))}
 
-        for idx, annot in enumerate(self.image_data[path]):
+        for annot in self.image_data[path]:
             annotations['labels'] = np.concatenate((annotations['labels'], [self.name_to_label(annot['class'])]))
             annotations['bboxes'] = np.concatenate((annotations['bboxes'], [[
                 float(annot['x1']),
