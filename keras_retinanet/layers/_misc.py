@@ -229,7 +229,7 @@ class ExtractTranslation(keras.layers.Layer):
     def compute_output_shape(self, input_shape):
         batch, img, pos, anchor = input_shape
         
-        return (None, 3)
+        return (None, 3fix: com)
 
     
 
