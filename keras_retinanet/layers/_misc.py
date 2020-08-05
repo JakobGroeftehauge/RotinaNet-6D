@@ -212,7 +212,7 @@ class ExtractRotation(keras.layers.Layer):
     def compute_output_shape(self, input_shape):
         batch, img, pos, anchor = input_shape
         
-        return (batch*img*pos*anchor/12, (anchor/12)*9)
+        return (None, 9)
 
 class ExtractTranslation(keras.layers.Layer):
     def __init__(self, start_idx, end_idx, **kwargs):
@@ -229,7 +229,7 @@ class ExtractTranslation(keras.layers.Layer):
     def compute_output_shape(self, input_shape):
         batch, img, pos, anchor = input_shape
         
-        return (batch*img*pos*anchor/12, (anchor/12)*3)
+        return (None, 3)
 
     
 
