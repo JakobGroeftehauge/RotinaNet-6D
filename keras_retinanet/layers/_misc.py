@@ -197,7 +197,7 @@ class ClipBoxes(keras.layers.Layer):
 #         batch, img, n_out = input_shape
 #         return [batch, img, self.end_idx - self.start_idx] 
 
-class ExtractRotation(keras.layer.Layer):
+class ExtractRotation(keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -214,7 +214,7 @@ class ExtractRotation(keras.layer.Layer):
         
         return (batch, img, pos, (anchor/12)*9)
 
-class ExtractTranslation(keras.layer.Layer):
+class ExtractTranslation(keras.layers.Layer):
     def __init__(self, start_idx, end_idx, **kwargs):
         super().__init__(**kwargs)
 
