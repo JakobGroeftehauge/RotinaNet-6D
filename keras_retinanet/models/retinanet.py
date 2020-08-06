@@ -310,7 +310,7 @@ def __build_pyramid(models, features):
 
 
 
-def build_pyramid_rotinaNet(models, features):
+def __build_pyramid_rotinaNet(models, features):
     pyramid = []
 
     for n, m in models:
@@ -406,7 +406,7 @@ def retinanet(
     feature_list = [features['P{}'.format(p)] for p in pyramid_levels]
 
     # for all pyramid levels, run available submodels
-    pyramids = __build_pyramid(submodels, feature_list)
+    pyramids = __build_pyramid_rotinaNet(submodels, feature_list)
 
     return keras.models.Model(inputs=inputs, outputs=pyramids, name=name)
 
