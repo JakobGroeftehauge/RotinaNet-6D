@@ -294,7 +294,7 @@ def __build_posemodel_pyramid(name, model, features):
         A tensor containing the response from the submodel on the FPN features.
     """
 
-    return [keras.layers.Concatenate(axis=1, name=name)([model(f)[0] for f in features]), keras.layers.Concatenate(axis=1, name=name)([model(f)[1] for f in features])]
+    return keras.layers.Concatenate(axis=1, name=name)([model(f)[0] for f in features]), keras.layers.Concatenate(axis=1, name=name)([model(f)[1] for f in features])
 
 def __build_pyramid(models, features):
     """ Applies all submodels to each FPN level.
@@ -316,7 +316,9 @@ def __build_pyramid_rotinaNet(models, features):
 
     for n, m in models:
         if type(m(features[0])) is list: 
-            pyramid.append(__build_posemodel_pyramid(n, m, features))
+            rot, pos = __build_posemodel_pyramid(n, m, features)
+            pyramid.append(rot)
+            pyramid.append(pos)
         else: 
             pyramid.append(__build_model_pyramid(n, m, features))
 
