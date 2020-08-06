@@ -211,9 +211,9 @@ class ExtractRotation(keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         print(input_shape)
-        x = input_shape
+        x, y, z = input_shape
 
-        return (x, 9)
+        return (x, y, 9)
 
 class ExtractTranslation(keras.layers.Layer):
     def __init__(self, **kwargs):
@@ -228,9 +228,9 @@ class ExtractTranslation(keras.layers.Layer):
         return output
 
     def compute_output_shape(self, input_shape):
-        x = input_shape
+        x, y, z = input_shape
 
-        return (x, 3)
+        return (x, y, 3)
 
     
 
