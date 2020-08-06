@@ -162,6 +162,8 @@ def default_pose_model(num_values, num_anchors, pyramid_feature_size=256, regres
     if keras.backend.image_data_format() == 'channels_first':
         outputs = keras.layers.Permute((2, 3, 1), name='pyramid_regression_permute')(outputs)
     
+
+    outputs = keras.layers.Reshape((-1, 12), name='pyramid_reshape')(outputs)
     output1 = layers.ExtractRotation()(outputs)
     output2 = layers.ExtractTranslation()(outputs)
     #output1, output2 = layers.SplitLayer()(outputs)
