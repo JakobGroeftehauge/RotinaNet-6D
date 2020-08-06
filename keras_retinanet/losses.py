@@ -128,7 +128,7 @@ def smooth_l1_pose(sigma=3.0):
     """
     sigma_squared = sigma ** 2
 
-    def _smooth_l1(y_true, y_pred):
+    def _smooth_l1_pose(y_true, y_pred):
         """ Compute the smooth L1 loss of y_pred w.r.t. y_true.
 
         Args
@@ -166,4 +166,4 @@ def smooth_l1_pose(sigma=3.0):
         normalizer = keras.backend.cast(normalizer, dtype=keras.backend.floatx())
         return keras.backend.sum(regression_loss) / normalizer
 
-    return _smooth_l1
+    return _smooth_l1_pose
