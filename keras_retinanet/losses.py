@@ -139,6 +139,7 @@ def smooth_l1_pose(sigma=3.0):
             The smooth L1 loss of y_pred w.r.t. y_true.
         """
         # separate target and state
+        print("regression_diff: ")
         regression        = y_pred
         regression_target = y_true[:, :, :-1]
         anchor_state      = y_true[:, :, -1]
@@ -152,7 +153,6 @@ def smooth_l1_pose(sigma=3.0):
         # f(x) = 0.5 * (sigma * x)^2          if |x| < 1 / sigma / sigma
         #        |x| - 0.5 / sigma / sigma    otherwise
         regression_diff = regression - regression_target
-        print("regression_diff: ", regression_diff.shape)
         regression_diff = keras.backend.abs(regression_diff)
         regression_loss = backend.where(
             keras.backend.less(regression_diff, 1.0 / sigma_squared),
