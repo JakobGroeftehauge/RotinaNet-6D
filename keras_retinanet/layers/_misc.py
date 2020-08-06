@@ -210,6 +210,7 @@ class ExtractRotation(keras.layers.Layer):
         return output
 
     def compute_output_shape(self, input_shape):
+        print(input_shape)
         x, y = input_shape
 
         return (x, 9)
