@@ -204,7 +204,7 @@ class ExtractRotation(keras.layers.Layer):
     def call(self, inputs, **kwargs):
         #batch, img, pos, anchor = inputs.shape
         #inputs = keras.backend.reshape(inputs, shape=(-1, 12))
-        output = inputs[:, 0:9]
+        output = inputs[:, :, 0:9]
         #output_flat = keras.backend.reshape(output_init, shape=-1) #flatten
         #output = keras.backend.reshape(output_flat, shape=(batch, img, pos, int((anchor/12)*9)))
         return output
@@ -222,7 +222,7 @@ class ExtractTranslation(keras.layers.Layer):
     def call(self, inputs, **kwargs):
         #batch, img, pos, anchor = inputs.shape
         #inputs = keras.backend.reshape(inputs,shape=(-1, 12))
-        output = inputs[:, 9:12]
+        output = inputs[:, :, 9:12]
         #output_flat = keras.backend.reshape(output_init, -1) #flatten
         #output = keras.backend.reshape(output_flat, shape=(batch, img, pos, int((anchor/12)*3)))
         return output
