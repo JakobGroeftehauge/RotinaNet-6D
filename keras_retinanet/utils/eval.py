@@ -111,7 +111,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         # run network
         start = time.time()
-        boxes, scores, labels, rotations, translations = model.predict_on_batch(np.expand_dims(image, axis=0))[:4] #RotinaNet-6D #[:3]
+        boxes, scores, labels, rotation, translation = model.predict_on_batch(np.expand_dims(image, axis=0))[:5] #RotinaNet-6D #[:3]
         inference_time = time.time() - start
 
         # correct boxes for image scale
