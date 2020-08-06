@@ -20,6 +20,7 @@ from .. import layers
 from ..utils.anchors import AnchorParameters
 from . import assert_training_model
 
+import numpy as np
 
 def default_classification_model(
     num_classes,
