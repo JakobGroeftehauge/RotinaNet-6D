@@ -154,7 +154,7 @@ def smooth_l1_pose(sigma=3.0):
         # f(x) = 0.5 * (sigma * x)^2          if |x| < 1 / sigma / sigma
         #        |x| - 0.5 / sigma / sigma    otherwise
         regression_diff = regression - regression_target
-        tf.Print(regression_diff.shape, "Inside loss function")
+        tf.print(regression_diff.shape, "Inside loss function")
         regression_diff = keras.backend.abs(regression_diff)
         regression_loss = backend.where(
             keras.backend.less(regression_diff, 1.0 / sigma_squared),
