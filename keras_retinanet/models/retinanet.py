@@ -292,8 +292,7 @@ def __build_posemodel_pyramid(name, model, features):
         A tensor containing the response from the submodel on the FPN features.
     """
 
-    return keras.layers.Concatenate(axis=1, name=name)([model(f)[0] for f in features]), keras.layers.Concatenate(axis=1, name=name)([model(f)[1] for f in features]),
-
+    return [keras.layers.Concatenate(axis=1, name=name)([model(f)[0] for f in features]), keras.layers.Concatenate(axis=1, name=name)([model(f)[1] for f in features])]
 
 def __build_pyramid(models, features):
     """ Applies all submodels to each FPN level.
