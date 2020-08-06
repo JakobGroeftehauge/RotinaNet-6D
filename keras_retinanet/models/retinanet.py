@@ -310,7 +310,7 @@ def __build_pyramid(models, features):
 
 
 
-def build_pyramid_rotinaNet(model, features):
+def build_pyramid_rotinaNet(models, features):
     pyramid = []
 
     for n, m in models:
