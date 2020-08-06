@@ -117,7 +117,7 @@ def smooth_l1(sigma=3.0):
 
     return _smooth_l1
 
-def smooth_l1_pose(sigma=3.0):
+def smooth_l1_pose(weight = 1, sigma=3.0):
     """ Create a smooth L1 loss functor.
 
     Args
@@ -127,6 +127,7 @@ def smooth_l1_pose(sigma=3.0):
         A functor for computing the smooth L1 loss given target data and predicted data.
     """
     sigma_squared = sigma ** 2
+    trans_weight = weight
 
     def _smooth_l1_pose(y_true, y_pred):
         """ Compute the smooth L1 loss of y_pred w.r.t. y_true.
@@ -154,7 +155,7 @@ def smooth_l1_pose(sigma=3.0):
         #        |x| - 0.5 / sigma / sigma    otherwise
         regression_diff = regression - regression_target
         rot = regression_diff[:,:-3]
-        trans = regression_diff[:,-3:]*3
+        trans = regression_diff[:,-3:]*trans_weight
         regression_diff = keras.backend.concatenate((rot, trans), axis=-1)
         regression_diff = keras.backend.abs(regression_diff)
         regression_loss = backend.where(
