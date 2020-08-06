@@ -155,7 +155,7 @@ def smooth_l1_pose(sigma=3.0):
         regression_diff = regression - regression_target
         rot = regression_diff[:,:-3]
         trans = regression_diff[:,-3:]*3
-        regression_diff = keras.backend.concatenate(rot, trans, axis=-1)
+        regression_diff = keras.backend.concatenate((rot, trans), axis=-1)
         regression_diff = keras.backend.abs(regression_diff)
         regression_loss = backend.where(
             keras.backend.less(regression_diff, 1.0 / sigma_squared),
