@@ -277,10 +277,22 @@ def __build_model_pyramid(name, model, features):
     Returns
         A tensor containing the response from the submodel on the FPN features.
     """
-    if model.outputs.shape > 1: 
-        return [keras.layers.Concatenate(axis=1, name=name)([model(f)[0] for f in features]), keras.layers.Concatenate(axis=1, name=name)([model(f)[0] for f in features])]
-    else:
-        return keras.layers.Concatenate(axis=1, name=name)([model(f) for f in features])
+
+    return keras.layers.Concatenate(axis=1, name=name)([model(f) for f in features])
+
+def __build_posemodel_pyramid(name, model, features):
+    """ Applies a single submodel to each FPN level.
+
+    Args
+        name     : Name of the submodel.
+        model    : The submodel to evaluate.
+        features : The FPN features.
+
+    Returns
+        A tensor containing the response from the submodel on the FPN features.
+    """
+
+    return keras.layers.Concatenate(axis=1, name=name)([model(f)[0] for f in features]), keras.layers.Concatenate(axis=1, name=name)([model(f)[2] for f in features]),
 
 
 def __build_pyramid(models, features):
@@ -293,7 +305,22 @@ def __build_pyramid(models, features):
     Returns
         A list of tensors, one for each submodel.
     """
+
     return [__build_model_pyramid(n, m, features) for n, m in models]
+
+
+
+def build_pyramid_rotinaNet(model, features):
+    pyramid = []
+
+    for n, m in models:
+        if type(m(features[0])) is list: 
+            pyramid.append(__build_posemodel_pyramid(n, m, features))
+        else: 
+            pyramid.append(__build_model_pyramid(n, m, features))
+
+    return pyramid 
+
 
 
 def __build_anchors(anchor_parameters, features):
