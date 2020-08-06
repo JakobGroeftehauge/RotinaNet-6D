@@ -153,7 +153,7 @@ def smooth_l1_pose(sigma=3.0):
         # f(x) = 0.5 * (sigma * x)^2          if |x| < 1 / sigma / sigma
         #        |x| - 0.5 / sigma / sigma    otherwise
         regression_diff = regression - regression_target
-        test = regression_diff[:,-3:]*3
+        regression_diff[:,-3:] = regression_diff[:,-3:]*3
         regression_diff = keras.backend.abs(regression_diff)
         regression_loss = backend.where(
             keras.backend.less(regression_diff, 1.0 / sigma_squared),
