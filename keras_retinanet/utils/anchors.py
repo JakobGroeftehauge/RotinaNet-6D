@@ -139,7 +139,7 @@ def anchor_targets_bbox(
 
     #transformation_batch = [rotation_batch, translation_batch]
 
-    return regression_batch, labels_batch, rotations_batch, translation_batch
+    return regression_batch, labels_batch, rotation_batch, translation_batch
 
 
 def compute_gt_annotations(
