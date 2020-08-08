@@ -11,14 +11,16 @@ class Backbone(object):
         from .. import losses
         from .. import initializers
         self.custom_objects = {
-            'UpsampleLike'     : layers.UpsampleLike,
-            'PriorProbability' : initializers.PriorProbability,
-            'RegressBoxes'     : layers.RegressBoxes,
-            'FilterDetections' : layers.FilterDetections,
-            'Anchors'          : layers.Anchors,
-            'ClipBoxes'        : layers.ClipBoxes,
-            '_smooth_l1'       : losses.smooth_l1(),
-            '_focal'           : losses.focal(),
+            'UpsampleLike'      : layers.UpsampleLike,
+            'PriorProbability'  : initializers.PriorProbability,
+            'RegressBoxes'      : layers.RegressBoxes,
+            'FilterDetections'  : layers.FilterDetections,
+            'Anchors'           : layers.Anchors,
+            'ClipBoxes'         : layers.ClipBoxes,
+            'ExtractRotation'   : layers.ExtractRotation,
+            'ExtractTranslation': layers.ExtractTranslation,
+            '_smooth_l1'        : losses.smooth_l1(),
+            '_focal'            : losses.focal(),
         }
 
         self.backbone = backbone
