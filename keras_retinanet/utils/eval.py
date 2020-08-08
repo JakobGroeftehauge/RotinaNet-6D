@@ -61,7 +61,7 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
     U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
-    det = np.round(np.linalg.det(np.matmul(V_t.T,U.T)))
+    det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
