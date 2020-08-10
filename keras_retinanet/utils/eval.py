@@ -60,7 +60,7 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
     detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
-    pre_file = open("pre_file.csv", "w+")
+    pre_file = open("pre_file.csv", "a")
     pre_writer = csv.writer(pre_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     pre_det = np.linalg.det(detected_pose_rotation)
     R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
@@ -71,7 +71,7 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
-    post_file = open("post_file.csv", "w+") 
+    post_file = open("post_file.csv", "a") 
     post_writer = csv.writer(post_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     post_det = np.linalg.det(detected_pose_rotation)
     R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
