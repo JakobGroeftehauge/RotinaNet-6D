@@ -137,7 +137,8 @@ def main(args=None):
         diag_threshold = args.diag_threshold,
         score_threshold=args.score_threshold,
         max_detections=args.max_detections,
-        save_path=args.save_path
+        save_path=args.save_path,
+        print_ADD_mat=True
     )
 
 

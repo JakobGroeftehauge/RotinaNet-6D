@@ -56,27 +56,29 @@ def _compute_ap(recall, precision):
     return ap
 
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
-            detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold):
+            detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_mat = False):
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
     detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
-    pre_file = open("pre_file.csv", "a")
-    pre_writer = csv.writer(pre_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    pre_det = np.linalg.det(detected_pose_rotation)
-    R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
-    pre_writer.writerow([pre_det, R1, R2, R3, R4, R5, R6, R7, R8, R9])
-    pre_file.close()
+    if print_mat is True:
+        pre_file = open("pre_file.csv", "a")
+        pre_writer = csv.writer(pre_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        pre_det = np.linalg.det(detected_pose_rotation)
+        R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
+        pre_writer.writerow([pre_det, R1, R2, R3, R4, R5, R6, R7, R8, R9])
+        pre_file.close()
 
     U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
     det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
-    post_file = open("post_file.csv", "a") 
-    post_writer = csv.writer(post_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    post_det = np.linalg.det(detected_pose_rotation)
-    R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
-    post_writer.writerow([post_det, R1, R2, R3, R4, R5, R6, R7, R8, R9])
-    post_file.close()
+    if print_mat is True:
+        post_file = open("post_file.csv", "a") 
+        post_writer = csv.writer(post_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        post_det = np.linalg.det(detected_pose_rotation)
+        R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
+        post_writer.writerow([post_det, R1, R2, R3, R4, R5, R6, R7, R8, R9])
+        post_file.close()
     
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
     #newPL_ori = newPL_ori + gt_pose_translation*1000
@@ -207,7 +209,8 @@ def evaluate(
     diag_threshold=0.1,
     score_threshold=0.05,
     max_detections=100,
-    save_path=None
+    save_path=None,
+    print_ADD_mat=False
 ):
     """ Evaluate a given dataset using a given model.
 
@@ -286,7 +289,7 @@ def evaluate(
                 if idx == 0:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold)
+                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold, print_ADD_mat)
                     avg_distances.append(avg_dist)
                     if accepted_dist:
                         accepted_ADD_annotations += 1
