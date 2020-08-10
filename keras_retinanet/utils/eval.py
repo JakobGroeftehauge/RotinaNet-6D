@@ -60,21 +60,21 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
     detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
-    with open("pre_file.csv") as csv_file:
-        writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        det = np.linalg.det(detected_pose_rotation)
-        R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
-        writer.writerow(det, R1, R2, R3, R4, R5, R6, R7, R8, R9)
+    pre_file = open("pre_file.csv", "w+")
+    pre_writer = csv.writer(pre_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    pre_et = np.linalg.det(detected_pose_rotation)
+    R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
+    pre_writer.writerow(pre_det, R1, R2, R3, R4, R5, R6, R7, R8, R9)
 
     U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
     det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
-    with open("post_file.csv") as csv_file:
-        writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        det = np.linalg.det(detected_pose_rotation)
-        R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
-        writer.writerow(det, R1, R2, R3, R4, R5, R6, R7, R8, R9)
+    post_file = open("post_file.csv") 
+    post_writer = csv.writer(post_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    post_det = np.linalg.det(detected_pose_rotation)
+    R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
+    post_writer.writerow(post_det, R1, R2, R3, R4, R5, R6, R7, R8, R9)
 
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
     #newPL_ori = newPL_ori + gt_pose_translation*1000
