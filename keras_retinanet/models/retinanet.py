@@ -155,13 +155,13 @@ def default_pose_model(num_values, num_anchors, pyramid_feature_size=256, regres
         outputs = keras.layers.Conv2D(
             filters=regression_feature_size,
             activation='relu',
-            name='pyramid_regression_{}'.format(i),
+            name='pyramid_pose_{}'.format(i),
             **options
         )(outputs)
 
-    outputs = keras.layers.Conv2D(num_anchors * num_values, name='pyramid_regression', **options)(outputs)
+    outputs = keras.layers.Conv2D(num_anchors * num_values, name='pyramid_pose', **options)(outputs)
     if keras.backend.image_data_format() == 'channels_first':
-        outputs = keras.layers.Permute((2, 3, 1), name='pyramid_regression_permute')(outputs)
+        outputs = keras.layers.Permute((2, 3, 1), name='pyramid_pose_permute')(outputs)
     
 
     outputs = keras.layers.Reshape((-1, 12), name='pyramid_reshape')(outputs)
