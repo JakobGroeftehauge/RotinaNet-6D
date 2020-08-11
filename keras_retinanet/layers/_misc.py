@@ -213,7 +213,7 @@ class Reorthogonalize(keras.layers.Layer):
         super().__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
-        x, y, z = np.shape(inputs)
+        #x, y, z = np.shape(inputs)
 
         U, S, V_t = tf.linalg.svd(inputs)
         det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
