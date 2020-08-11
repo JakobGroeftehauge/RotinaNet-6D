@@ -215,7 +215,7 @@ class Reorthogonalize(keras.layers.Layer):
     def call(self, inputs, **kwargs):
         x, y, z = np.shape(inputs)
 
-        U, S, V_t = tf.linalg.svd(inputs_mat)
+        U, S, V_t = tf.linalg.svd(inputs)
         det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
         ort_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
