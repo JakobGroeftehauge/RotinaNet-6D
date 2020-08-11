@@ -167,10 +167,8 @@ def default_pose_model(num_values, num_anchors, pyramid_feature_size=256, regres
     outputs = keras.layers.Reshape((-1, 12), name='pyramid_reshape')(outputs)
     rot = layers.ExtractRotation()(outputs)
     trans = layers.ExtractTranslation()(outputs)
-    #output1, output2 = layers.SplitLayer()(outputs)
-
-
     rot = keras.layers.Reshape((-1, 9), name='pyramid_rotation_reshape')(rot)
+    rot = layers.Reorthogonalize()(rot)
     trans = keras.layers.Reshape((-1, 3), name='pyramid_translation_reshape')(trans)
 
     return keras.models.Model(inputs=inputs, outputs=[rot, trans], name=name)

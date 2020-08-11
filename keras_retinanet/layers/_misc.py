@@ -183,36 +183,17 @@ class ClipBoxes(keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         return input_shape[1]
-#  
-# class MaskOutput(keras.layers.Layer):
-
-#     def __init__(self, start_idx, end_idx, **kwargs):
-#         self.end_idx = end_idx
-#         self.start_idx = start_idx
-
-#     def call(self, inputs, **kwargs):
-#         return inputs[:, :, self.start_idx:self.end_idx]
-
-#     def compute_output_shape(self, input_shape):
-#         batch, img, n_out = input_shape
-#         return [batch, img, self.end_idx - self.start_idx] 
 
 class ExtractRotation(keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
-        #batch, img, pos, anchor = inputs.shape
-        #inputs = keras.backend.reshape(inputs, shape=(-1, 12))
-        output = inputs[:, :, 0:9]
-        #output_flat = keras.backend.reshape(output_init, shape=-1) #flatten
-        #output = keras.backend.reshape(output_flat, shape=(batch, img, pos, int((anchor/12)*9)))
-        return output
+        return inputs[:, :, 0:9]
 
     def compute_output_shape(self, input_shape):
         print(input_shape)
         x, y, z = input_shape
-
         return (x, y, 9)
 
 class ExtractTranslation(keras.layers.Layer):
@@ -220,24 +201,26 @@ class ExtractTranslation(keras.layers.Layer):
         super().__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
-        #batch, img, pos, anchor = inputs.shape
-        #inputs = keras.backend.reshape(inputs,shape=(-1, 12))
-        output = inputs[:, :, 9:12]
-        #output_flat = keras.backend.reshape(output_init, -1) #flatten
-        #output = keras.backend.reshape(output_flat, shape=(batch, img, pos, int((anchor/12)*3)))
-        return output
+        return inputs[:, :, 9:12]
 
     def compute_output_shape(self, input_shape):
         x, y, z = input_shape
-
         return (x, y, 3)
 
-    
+class Reorthogonalize(keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
-#class SplitLayer(keras.layers.Layer):
-#def call(self, inputs, **kwargs):
-#regression = inputs
-#unstacked = backend.unstack(regression, axis=-1)
-#return [keras.backend.stack(unstacked[0:9], axis=2), keras.backend.stack(unstacked[9:], axis=2)]
-#def compute_output_shape(self, input_shape):
-#return [(input_shape[0:-1], 9), (input_shape[0:-1],3)]
+    def call(self, inputs, **kwargs):
+        x, y, z = np.shape(inputs)
+        inputs_mat = keras.layers.Reshape(x, y, 3, 3)
+        U, S, V_t = tf.linalg.svd(inputs_mat)
+        det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
+        ort_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
+        ort_rotation = keras.layers.Reshape(-1, 9)
+        return ort_rotation
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+    
