@@ -19,6 +19,7 @@ from .. import backend
 from ..utils import anchors as utils_anchors
 
 import numpy as np
+import tensorflow as tf
 
 
 class Anchors(keras.layers.Layer):
