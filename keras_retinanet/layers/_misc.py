@@ -219,7 +219,7 @@ class Reorthogonalize(keras.layers.Layer):
         det = tf.sign(tf.linalg.det(tf.matmul(tf.transpose(V_t), tf.transpose(U))))
         # fix tf.constant -> det
         #rt_rotation = tf.matmul(tf.matmul(tf.transpose(V_t), tf.repeat(tf.constant([[1,0,0],[0,1,0],[0,0,det]]), shape[:-2])), tf.transpose(U))
-        #ort_rotation = tf.matmul(tf.transpose(V_t), tf.transpose(U))
+        ort_rotation = tf.matmul(tf.transpose(V_t), tf.transpose(U))
         return ort_rotation
 
     def compute_output_shape(self, input_shape):
@@ -233,7 +233,7 @@ class ScaleDeterminant(keras.layers.Layer):
     def call(self, inputs, **kwargs):
         det = tf.linalg.det(inputs)
         inputs = tf.reshape(inputs, (-1, 9))
-        inputs = inputs * 1.0/det
+        inputs = inputs[:] * 1.0/det
         inputs = tf.reshape(inputs, (-1, 3, 3))
         return inputs
 
