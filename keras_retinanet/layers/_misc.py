@@ -233,7 +233,7 @@ class ScaleDeterminant(keras.layers.Layer):
     def call(self, inputs, **kwargs):
         det = tf.linalg.det(inputs)
         inputs = tf.reshape(inputs, (-1, 9))
-        inputs = tf.math.multiply(inputs, tf.divide(1.0, det))
+        inputs = tf.math.multiply(inputs, tf.divide(1.0, tf.transpose(det)))
         inputs = tf.reshape(inputs, (-1, 3, 3))
         return inputs
 
