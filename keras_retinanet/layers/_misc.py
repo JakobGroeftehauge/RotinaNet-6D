@@ -234,9 +234,9 @@ class ScaleDeterminant(keras.layers.Layer):
         print("inputs: ", inputs.shape)
         det = tf.linalg.det(inputs)
         #inputs = tf.reshape(inputs, (-1, 9))
-        inputs = tf.math.multiply(inputs, tf.reshape((tf.divide(1.0, tf.transpose(det)), (-1))))
+        inputs = tf.math.multiply(inputs, tf.reshape(tf.divide(1.0, tf.transpose(det)), shape=-1))
         #inputs = tf.reshape(inputs, (-1, 3, 3))
-        print("inputs: ", inputs.shape)
+        #print("inputs after: ", inputs.shape)
         return inputs
 
     def compute_output_shape(self, input_shape):
