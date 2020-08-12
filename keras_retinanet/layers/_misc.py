@@ -231,10 +231,12 @@ class ScaleDeterminant(keras.layers.Layer):
         super().__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
+        print("inputs: ", input.shape)
         det = tf.linalg.det(inputs)
         inputs = tf.reshape(inputs, (-1, 9))
         inputs = tf.math.multiply(inputs, tf.divide(1.0, tf.transpose(det)))
         inputs = tf.reshape(inputs, (-1, 3, 3))
+        print("inputs: ", input.shape)
         return inputs
 
     def compute_output_shape(self, input_shape):
