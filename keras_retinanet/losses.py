@@ -68,7 +68,7 @@ def focal(alpha=0.25, gamma=2.0, cutoff=0.5):
     return _focal
 
 
-def smooth_l1(sigma=3.0):
+def smooth_l1(sigma=3.0, weighting = 1.0):
     """ Create a smooth L1 loss functor.
 
     Args
@@ -113,6 +113,6 @@ def smooth_l1(sigma=3.0):
         # compute the normalizer: the number of positive anchors
         normalizer = keras.backend.maximum(1, keras.backend.shape(indices)[0])
         normalizer = keras.backend.cast(normalizer, dtype=keras.backend.floatx())
-        return keras.backend.sum(regression_loss) / normalizer
+        return keras.backend.sum(regression_loss) / normalizer * weighting
 
     return _smooth_l1
