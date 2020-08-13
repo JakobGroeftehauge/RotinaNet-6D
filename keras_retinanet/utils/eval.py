@@ -65,10 +65,10 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
-    newPL_ori = newPL_ori[:] + gt_pose_translation*1000
+    newPL_ori = newPL_ori[:] + gt_pose_translation
 
     newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
-    newPL = newPL[:] + detected_pose_translation*1000
+    newPL = newPL[:] + detected_pose_translation
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
@@ -277,18 +277,18 @@ def evaluate(
                     # Coordinates of the principal point and focal length in x and y
                     dx = 325.2611
                     dy = 242.04899
-                    fx = 572.4114/1000.0
-                    fy = 573.57043/1000.0
+                    fx = 572.4114
+                    fy = 573.57043
 
                     # displacement in the x direction from principal point 
                     offset_x = d[2] - d[0] - dx
                     offset_y = d[1] - d[3] - dy
                     # translation vector coordinates
-                    t_z = t
+                    t_z = t * 1000 # convert from mm to m
                     t_x = t/fx * offset_x 
                     t_y = t/fy * offset_y
 
-                    trans = np.transpose([t_x, t_y, t_z])
+                    trans = np.array([t_x, t_y, t_z])
                     avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
                     avg_distances.append(avg_dist)
 
