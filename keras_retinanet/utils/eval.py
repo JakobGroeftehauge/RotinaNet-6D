@@ -65,10 +65,10 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
-    newPL_ori = newPL_ori + gt_pose_translation*1000
+    newPL_ori = newPL_ori[:] + gt_pose_translation*1000
 
     newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
-    newPL = newPL + detected_pose_translation*1000
+    newPL = newPL[:] + detected_pose_translation*1000
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
