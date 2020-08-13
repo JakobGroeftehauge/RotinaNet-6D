@@ -288,7 +288,7 @@ def evaluate(
                     t_x = t/fx * offset_x 
                     t_y = t/fy * offset_y
 
-                    trans = np.tranpose([t_x, t_y, t_z])
+                    trans = np.transpose([t_x, t_y, t_z])
                     avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
                     avg_distances.append(avg_dist)
 
