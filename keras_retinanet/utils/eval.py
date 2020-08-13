@@ -281,14 +281,15 @@ def evaluate(
                     fy = 573.57043/1000.0
 
                     # displacement in the x direction from principal point 
-                    offset_x = d[idx][2] - d[idx][0] - dx
-                    offset_y = d[idx][1] - d[idx][3] - dy
+                    offset_x = d[2] - d[0] - dx
+                    offset_y = d[1] - d[3] - dy
                     # translation vector coordinates
                     t_z = t
                     t_x = t/fx * offset_x 
                     t_y = t/fy * offset_y
 
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], [t_x, t_y, t_z], r, pt_cloud, diag_distance, diag_threshold)
+                    trans = np.tranpose([t_x, t_y, t_z])
+                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
                     avg_distances.append(avg_dist)
 
                     if accepted_dist:
