@@ -272,8 +272,25 @@ def evaluate(
                 if idx == 0:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold)
+                    #Convert depth to translation vector -> RotinaNet-6D
+                    
+                    # Coordinates of the principal point and focal length in x and y
+                    dx = 325.2611
+                    dy = 242.04899
+                    fx = 572.4114
+                    fy = 573.57043
+
+                    # displacement in the x direction from principal point 
+                    offset_x = d[2] - d[0] - dx
+                    offset_y = d[1] - d[3] - dy
+                    # translation vector coordinates
+                    t_z = t
+                    t_x = t/fx * offset_x 
+                    t_y = t/fy * offset_y
+
+                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], [t_x, t_y, t_z], r, pt_cloud, diag_distance, diag_threshold)
                     avg_distances.append(avg_dist)
+                    
                     if accepted_dist:
                         accepted_ADD_annotations += 1
                     total_detections += 1
