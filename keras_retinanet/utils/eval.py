@@ -272,17 +272,17 @@ def evaluate(
                 if idx == 0:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
-                    #Convert depth to translation vector -> RotinaNet-6D
+                    # Convert depth to translation vector -> RotinaNet-6D
                     
                     # Coordinates of the principal point and focal length in x and y
                     dx = 325.2611
                     dy = 242.04899
-                    fx = 572.4114
-                    fy = 573.57043
+                    fx = 572.4114/1000.0
+                    fy = 573.57043/1000.0
 
                     # displacement in the x direction from principal point 
-                    offset_x = d[2] - d[0] - dx
-                    offset_y = d[1] - d[3] - dy
+                    offset_x = d[idx][2] - d[idx][0] - dx
+                    offset_y = d[idx][1] - d[idx][3] - dy
                     # translation vector coordinates
                     t_z = t
                     t_x = t/fx * offset_x 
