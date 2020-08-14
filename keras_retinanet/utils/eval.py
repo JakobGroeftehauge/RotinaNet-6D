@@ -57,8 +57,8 @@ def _compute_ap(recall, precision):
 
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_mat = False):
-    gt_pose_rotation = np.transpose(gt_pose_rotation.reshape((3,3)))
-    detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
+    gt_pose_rotation = gt_pose_rotation.reshape((3,3))
+    detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
     if print_mat is True:
         pre_file = open("pre_file.csv", "a")
