@@ -284,15 +284,15 @@ def evaluate(
                     offset_x = d[2] - d[0] - dx
                     offset_y = d[1] - d[3] - dy
                     # translation vector coordinates
-                    print("t: ", t)
 
                     t_z = t[0] * 1000 # convert from m to mm
                     t_x = t_z/fx * offset_x 
                     t_y = t_z/fy * offset_y
 
                     trans = np.array([t_x, t_y, t_z])
+                    rot = r * 1000
                     #print("trans", trans)
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
+                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], trans, rot, pt_cloud, diag_distance, diag_threshold)
                     avg_distances.append(avg_dist)
 
                     if accepted_dist:
