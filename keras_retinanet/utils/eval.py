@@ -290,15 +290,15 @@ def evaluate(
                     t_y = t_z/fy * offset_y
 
                     trans = np.array([t_x, t_y, t_z])
-                    rot = r * 1000
                     #print("trans", trans)
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], trans, rot, pt_cloud, diag_distance, diag_threshold)
+                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
                     avg_distances.append(avg_dist)
 
                     if accepted_dist:
                         accepted_ADD_annotations += 1
                     total_detections += 1
         CEP_ratio = accepted_ADD_annotations / np.maximum(total_detections, np.finfo(np.float64).eps)
+
         # no annotations -> AP for this class is 0 (is this correct?)
         if num_annotations == 0:
             average_precisions[label] = 0, 0
