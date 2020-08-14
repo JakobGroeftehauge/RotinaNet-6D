@@ -68,7 +68,7 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
         pre_writer.writerow([pre_det, R1, R2, R3, R4, R5, R6, R7, R8, R9])
         pre_file.close()
 
-    U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
+    U, S, V_t = np.linalg.svd(np.transpose(detected_pose_rotation), full_matrices=True)
     det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
