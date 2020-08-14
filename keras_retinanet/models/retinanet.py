@@ -125,6 +125,7 @@ def default_regression_model(num_values, num_anchors, pyramid_feature_size=256, 
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
 
 def default_pose_model(num_values, num_anchors, pyramid_feature_size=256, regression_feature_size=256, name='pose_submodel'):
+    #NOTE num_values is not used!!
     """ Creates the default regression submodel.
     Args
         num_values              : Number of values to regress.
@@ -162,9 +163,9 @@ def default_pose_model(num_values, num_anchors, pyramid_feature_size=256, regres
     outputs = keras.layers.Conv2D(num_anchors * num_values, name='pyramid_pose', **options)(outputs)
     if keras.backend.image_data_format() == 'channels_first':
         outputs = keras.layers.Permute((2, 3, 1), name='pyramid_pose_permute')(outputs)
-    
 
-    outputs = keras.layers.Reshape((-1, 12), name='pyramid_reshape')(outputs)
+
+    outputs = keras.layers.Reshape((-1, 10), name='pyramid_reshape')(outputs)
     rot = layers.ExtractRotation()(outputs)
     trans = layers.ExtractTranslation()(outputs)
     #rot = keras.layers.Reshape((-1, 3,3), name='pyramid_rotation_reshape')(rot)
@@ -173,7 +174,7 @@ def default_pose_model(num_values, num_anchors, pyramid_feature_size=256, regres
     #rot = layers.Reorthogonalize()(rot)
     #rot = layers.ScaleDeterminant()(rot)
     rot = keras.layers.Reshape((-1, 9))(rot)
-    trans = keras.layers.Reshape((-1, 3), name='pyramid_translation_reshape')(trans)
+    trans = keras.layers.Reshape((-1, 1), name='pyramid_translation_reshape')(trans)
 
     return keras.models.Model(inputs=inputs, outputs=[rot, trans], name=name)
 
@@ -267,7 +268,7 @@ def pose_submodels(num_classes, num_anchors):
     return [
         ('regression', default_regression_model(4, num_anchors)),
         ('classification', default_classification_model(num_classes, num_anchors)),
-        ('pose', default_pose_model(12, num_anchors, name='pose_submodel'))
+        ('pose', default_pose_model(10, num_anchors, name='pose_submodel'))
     ]
 
 
@@ -318,14 +319,14 @@ def __build_pyramid_rotinaNet(models, features):
     pyramid = []
 
     for n, m in models:
-        if type(m(features[0])) is list: 
+        if type(m(features[0])) is list:
             rot, pos = __build_posemodel_pyramid(n, m, features)
             pyramid.append(rot)
             pyramid.append(pos)
-        else: 
+        else:
             pyramid.append(__build_model_pyramid(n, m, features))
 
-    return pyramid 
+    return pyramid
 
 
 

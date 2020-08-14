@@ -202,11 +202,11 @@ class ExtractTranslation(keras.layers.Layer):
         super().__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
-        return inputs[:, :, 9:12]
+        return inputs[:, :, 9:]
 
     def compute_output_shape(self, input_shape):
         x, y, z = input_shape
-        return (x, y, 3)
+        return (x, y, 1)
 
 class Reorthogonalize(keras.layers.Layer):
     def __init__(self, **kwargs):
@@ -231,7 +231,7 @@ class ScaleDeterminant(keras.layers.Layer):
         super().__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
-        a, b, c, d = inputs.shape 
+        a, b, c, d = inputs.shape
         print("inputs: ", inputs.shape)
         det = tf.reshape(tf.linalg.det(inputs), [-1])
         print("det:", det.shape)
