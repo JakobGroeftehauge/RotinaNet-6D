@@ -21,7 +21,7 @@ import keras
 import numpy as np
 import os
 import time
-import csv 
+import csv
 import cv2
 import progressbar
 assert(callable(progressbar.progressbar)), "Using wrong progressbar module, install 'progressbar2' instead."
@@ -57,8 +57,8 @@ def _compute_ap(recall, precision):
 
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_mat = False):
-    gt_pose_rotation = gt_pose_rotation.reshape((3,3))
-    detected_pose_rotation = detected_pose_rotation.reshape((3,3))
+    gt_pose_rotation = np.transpose(gt_pose_rotation.reshape((3,3)))
+    detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
 
     if print_mat is True:
         pre_file = open("pre_file.csv", "a")
@@ -73,18 +73,18 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
     if print_mat is True:
-        post_file = open("post_file.csv", "a") 
+        post_file = open("post_file.csv", "a")
         post_writer = csv.writer(post_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         post_det = np.linalg.det(detected_pose_rotation)
         R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
         post_writer.writerow([post_det, R1, R2, R3, R4, R5, R6, R7, R8, R9])
         post_file.close()
-    
+
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
-    #newPL_ori = newPL_ori + gt_pose_translation*1000
+    newPL_ori = newPL_ori + gt_pose_translation*1000
 
     newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
-    #newPL = newPL + detected_pose_translation*1000
+    newPL = newPL + detected_pose_translation*1000
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
