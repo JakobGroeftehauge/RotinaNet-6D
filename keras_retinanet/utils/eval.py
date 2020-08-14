@@ -287,8 +287,8 @@ def evaluate(
                     print("t: ", t)
 
                     t_z = t[0] * 1000 # convert from m to mm
-                    t_x = t/fx * offset_x 
-                    t_y = t/fy * offset_y
+                    t_x = t_z/fx * offset_x 
+                    t_y = t_z/fy * offset_y
 
                     trans = np.array([t_x, t_y, t_z])
                     #print("trans", trans)
