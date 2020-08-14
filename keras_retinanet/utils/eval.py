@@ -284,9 +284,9 @@ def evaluate(
                     offset_x = d[2] - d[0] - dx
                     offset_y = d[1] - d[3] - dy
                     # translation vector coordinates
-                    print("t: ", )
+                    print("t: ", t)
 
-                    t_z = t * 1000 # convert from m to mm
+                    t_z = t[0] * 1000 # convert from m to mm
                     t_x = t/fx * offset_x 
                     t_y = t/fy * offset_y
 
