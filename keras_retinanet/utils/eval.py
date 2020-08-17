@@ -77,8 +77,8 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     if print_depth == True:
         pred_file = open("depth_preds.csv", "a")
         pred_writer = csv.writer(pred_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        post_writer.writerow([gt_pose_translatio[2], detected_pose_translation[2]])
-        post_file.close()
+        pred_writer.writerow([gt_pose_translation[2], detected_pose_translation[2]])
+        pred_file.close()
     
     if( meanValue < distance_diag*diag_threshold):
         return meanValue, 1
