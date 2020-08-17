@@ -56,7 +56,7 @@ def _compute_ap(recall, precision):
     return ap
 
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
-            detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold):
+            detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_depth=False):
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
     detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
 
@@ -73,6 +73,12 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
 
+    if print_depth == True:
+        pred_file = open("depth_preds.csv", "a")
+        pred_writer = csv.writer(pred_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        post_writer.writerow([gt_pose_translatio[2], detected_pose_translation[2]])
+        post_file.close()
+    
     if( meanValue < distance_diag*diag_threshold):
         return meanValue, 1
     else:
@@ -193,7 +199,9 @@ def evaluate(
     diag_threshold=0.1,
     score_threshold=0.05,
     max_detections=100,
-    save_path=None
+    save_path=None, 
+    print_depth_data=False
+
 ):
     """ Evaluate a given dataset using a given model.
 
@@ -292,7 +300,7 @@ def evaluate(
                     trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, t_z])
                     #print("trans", trans)
                     #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, rotation_annotations[0], pt_cloud, diag_distance, diag_threshold)
+                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, rotation_annotations[0], pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
                     avg_distances.append(avg_dist)
 
                     if accepted_dist:
