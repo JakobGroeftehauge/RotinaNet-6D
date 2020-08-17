@@ -125,7 +125,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
             'rotation'      : losses.smooth_l1(weighting=0.0),
             'translation'   : keras.losses.MeanAbsoluteError() #losses.smooth_l1(weighting=3.0)
         },
-        loss_weights=[0.5,0.5,2,3]
+        loss_weights=[0.5,0.5,2,3],
         optimizer=keras.optimizers.adam(lr=lr, clipnorm=0.001)
     )
 
