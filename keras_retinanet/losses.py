@@ -129,7 +129,7 @@ def l1(sigma=3.0, weighting = 1.0):
     """
     sigma_squared = sigma ** 2
 
-    def l1(y_true, y_pred):
+    def _l1(y_true, y_pred):
         """ Compute the smooth L1 loss of y_pred w.r.t. y_true.
 
         Args
