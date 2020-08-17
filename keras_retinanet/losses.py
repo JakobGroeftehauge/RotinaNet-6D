@@ -118,7 +118,7 @@ def smooth_l1(sigma=3.0, weighting = 1.0):
     return _smooth_l1
 
 
-def 1(sigma=3.0, weighting = 1.0):
+def l1(sigma=3.0, weighting = 1.0):
     """ Create a smooth L1 loss functor.
 
     Args
