@@ -291,7 +291,8 @@ def evaluate(
 
                     trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, t_z])
                     #print("trans", trans)
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
+                    #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
+                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, rotation_annotations[0], pt_cloud, diag_distance, diag_threshold)
                     avg_distances.append(avg_dist)
 
                     if accepted_dist:
