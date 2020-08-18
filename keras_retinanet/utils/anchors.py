@@ -126,7 +126,6 @@ def anchor_targets_bbox(
             labels_batch[index, indices, -1]     = -1
             rotation_batch[index, indices, -1] = -1
             translation_batch[index, indices, -1] = -1
-            translation_batch[:, :, -2:] = (translation_batch[:, :, -2:] - 0.6549) / 0.4219
 
     return regression_batch, labels_batch, rotation_batch, translation_batch[:, :, -2:]  
 
