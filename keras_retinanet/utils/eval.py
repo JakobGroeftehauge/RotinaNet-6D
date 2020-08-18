@@ -58,18 +58,19 @@ def _compute_ap(recall, precision):
 
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_depth=False):
-    gt_pose_rotation = gt_pose_rotation.reshape((3,3))
-    detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
+    #gt_pose_rotation = gt_pose_rotation.reshape((3,3))
+    #detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
 
-    U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
-    det = np.round(np.linalg.det(np.matmul(V_t.T,U.T)))
-    detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
+    #U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
+    #det = np.round(np.linalg.det(np.matmul(V_t.T,U.T)))
+    #detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
     newPL_ori = newPL_ori + gt_pose_translation #+ np.tile(np.array(gt_pose_translation), (38, 1))
 
     newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
     newPL = newPL + detected_pose_translation #+ np.tile(np.array(detected_pose_translation), (38, 1))
+
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
