@@ -300,9 +300,10 @@ def evaluate(
                     t_y = t_z/fy * offset_y
 
                     trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, t_z])
+                    anno_trans = [translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][1]*0.4219 + 0.649 ]* 1000
                     #print("trans", trans)
                     #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, rotation_annotations[0], pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
+                    avg_dist, accepted_dist = _test_ADD(anno_trans, rotation_annotations[0], trans, rotation_annotations[0], pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
                     avg_distances.append(avg_dist)
 
                     if accepted_dist:
