@@ -58,8 +58,9 @@ def _compute_ap(recall, precision):
 
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_depth=False):
-    #gt_pose_rotation = gt_pose_rotation.reshape((3,3))
+    gt_pose_rotation = gt_pose_rotation.reshape((3,3))
     #detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
+    detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
     #U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
     #det = np.round(np.linalg.det(np.matmul(V_t.T,U.T)))
