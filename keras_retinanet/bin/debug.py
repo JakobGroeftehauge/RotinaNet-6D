@@ -47,7 +47,7 @@ from ..utils.image import random_visual_effect_generator
 from ..utils.keras_version import check_keras_version
 from ..utils.tf_version import check_tf_version
 from ..utils.transform import random_transform_generator
-from ..utils.visualization import draw_annotations, draw_boxes, draw_caption
+from ..utils.visualization import draw_bbox_annotations, draw_boxes, draw_caption
 
 
 def create_generator(args):
@@ -225,7 +225,7 @@ def run(generator, args, anchor_params, pyramid_levels):
             # draw annotations on the image
             if args.show_annotations:
                 # draw annotations in red
-                draw_annotations(image, annotations, color=(0, 0, 255), label_to_name=generator.label_to_name)
+                draw_bbox_annotations(image, annotations, color=(0, 0, 255), label_to_name=generator.label_to_name)
 
                 # draw regressed anchors in green to override most red annotations
                 # result is that annotations without anchors are red, with anchors are green
