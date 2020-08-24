@@ -127,7 +127,7 @@ def draw_pose_detections(image, boxes, scores, labels, rotations, translations, 
         color           : The color of the boxes. By default the color from keras_retinanet.utils.colors.label_color will be used.
         label_to_name   : (optional) Functor for mapping a label to a name.
     """
-    max_idx = np.argmax(scores)[0]
+    max_idx = np.argmax(scores)
     draw_box(image, boxes[max_idx, :], color=color)
 
     # draw depth prediction
