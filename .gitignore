@@ -22,3 +22,5 @@ __pycache__/
 coverage.xml
 *.cover
 *.h5
+keras_retinanet/.vscode/.ropeproject/config.py
+keras_retinanet/.vscode/.ropeproject/objectdb

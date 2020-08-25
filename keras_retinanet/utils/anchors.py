@@ -115,8 +115,6 @@ def anchor_targets_bbox(
             labels_batch[index, positive_indices, annotations['labels'][argmax_overlaps_inds[positive_indices]].astype(int)] = 1
 
             regression_batch[index, :, :-1] = bbox_transform(anchors, annotations['bboxes'][argmax_overlaps_inds, :])
-
-
             rotation_batch[index, :,:-1] = annotations['rotations'][argmax_overlaps_inds, :]
             translation_batch[index, :,:-1] = annotations['translations'][argmax_overlaps_inds, :]
 
