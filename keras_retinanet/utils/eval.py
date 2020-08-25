@@ -59,12 +59,12 @@ def _compute_ap(recall, precision):
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_depth=False):
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
-    #detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
-    detected_pose_rotation = detected_pose_rotation.reshape((3,3))
+    detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
+    #detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
-    #U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
-    #det = np.round(np.linalg.det(np.matmul(V_t.T,U.T)))
-    #detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
+    U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
+    det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
+    detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
     newPL_ori = newPL_ori + gt_pose_translation #+ np.tile(np.array(gt_pose_translation), (38, 1))
@@ -157,7 +157,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
             cv2.imwrite(os.path.join(save_path + '/bbox', '{}.png'.format(i)), draw_image_bbox)
             
             draw_image_pose = raw_image.copy()
-            draw_pose_detections(draw_image_pose, image_boxes, image_scores, image_labels, image_rotations, image_translations,label_to_name=generator.label_to_name)
+            draw_pose_detections(draw_image_pose, image_boxes, image_scores, image_labels, image_rotations, image_translations, label_to_name=generator.label_to_name)
             cv2.imwrite(os.path.join(save_path + '/pose', '{}.png'.format(i)), draw_image_pose)
 
 
@@ -294,27 +294,14 @@ def evaluate(
                 if idx == 0:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
-                    # Convert depth to translation vector -> RotinaNet-6D
-                    
-                    # Coordinates of the principal point and focal length in x and y
-                    dx = 325.2611
-                    dy = 242.04899
-                    fx = 572.4114
-                    fy = 573.57043
-
-                    # displacement in the x direction from principal point 
-                    offset_x = d[2] - d[0] - dx
-                    offset_y = d[1] - d[3] - dy
                     # translation vector coordinates
                     t_z = (t[0] * 0.4219 + 0.6549) * 1000 # convert from m to mm
-                    t_x = t_z/fx * offset_x 
-                    t_y = t_z/fy * offset_y
-
                     trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, t_z])
+                    
                     anno_trans = np.array([translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][2]*0.4219 + 0.649 ])*1000
                     #print("trans", trans)
                     #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
-                    avg_dist, accepted_dist = _test_ADD(anno_trans, rotation_annotations[0], trans, rotation_annotations[0], pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
+                    avg_dist, accepted_dist = _test_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
                     avg_distances.append(avg_dist)
 
                     if accepted_dist:
