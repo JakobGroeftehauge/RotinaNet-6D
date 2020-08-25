@@ -58,13 +58,23 @@ def _compute_ap(recall, precision):
 
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_depth=False):
+
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
     detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
     #detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
     U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
+
     det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
+
+    if print_mat is True:
+        post_file = open("post_file.csv", "a")
+        post_writer = csv.writer(post_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        post_det = np.linalg.det(detected_pose_rotation)
+        R1, R2, R3, R4, R5, R6, R7, R8, R9 = detected_pose_rotation.reshape(-1)
+        post_writer.writerow([post_det, R1, R2, R3, R4, R5, R6, R7, R8, R9])
+        post_file.close()
 
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
     newPL_ori = newPL_ori + gt_pose_translation #+ np.tile(np.array(gt_pose_translation), (38, 1))
@@ -213,10 +223,9 @@ def evaluate(
     diag_threshold=0.1,
     score_threshold=0.05,
     max_detections=100,
-    save_path=None, 
-    print_depth_data=False
 
-):
+    save_path=None, 
+    print_depth_data=False):
     """ Evaluate a given dataset using a given model.
 
     # Arguments
@@ -293,7 +302,6 @@ def evaluate(
                 # Only evaluate top-1 prediction # RotinaNet-6D FIX!!! NOT AS INTENDED
                 if idx == 0:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
-
                     # translation vector coordinates
                     t_z = (t[0] * 0.4219 + 0.6549) * 1000 # convert from m to mm
                     trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, t_z])
@@ -302,6 +310,7 @@ def evaluate(
                     #print("trans", trans)
                     #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
                     avg_dist, accepted_dist = _test_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
+
                     avg_distances.append(avg_dist)
 
                     if accepted_dist:

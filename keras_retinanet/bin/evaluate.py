@@ -138,8 +138,7 @@ def main(args=None):
         score_threshold=args.score_threshold,
         max_detections=args.max_detections,
         save_path=args.save_path, 
-        print_depth_data=True
-    )
+        print_depth_data=True)
 
 
     # print evaluation

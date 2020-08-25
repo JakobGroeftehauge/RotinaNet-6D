@@ -20,6 +20,7 @@ from .. import layers
 from ..utils.anchors import AnchorParameters
 from . import assert_training_model
 
+import numpy as np
 
 def default_classification_model(
     num_classes,
@@ -123,6 +124,60 @@ def default_regression_model(num_values, num_anchors, pyramid_feature_size=256, 
 
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
 
+def default_pose_model(num_values, num_anchors, pyramid_feature_size=256, regression_feature_size=256, name='pose_submodel'):
+    #NOTE num_values is not used!!
+    """ Creates the default regression submodel.
+    Args
+        num_values              : Number of values to regress.
+        num_anchors             : Number of anchors to regress for each feature level.
+        pyramid_feature_size    : The number of filters to expect from the feature pyramid levels.
+        regression_feature_size : The number of filters to use in the layers in the regression submodel.
+        name                    : The name of the submodel.
+    Returns
+        A keras.models.Model that predicts regression values for each anchor.
+    """
+    # All new conv layers except the final one in the
+    # RetinaNet (classification) subnets are initialized
+    # with bias b = 0 and a Gaussian weight fill with stddev = 0.01.
+    options = {
+        'kernel_size'        : 3,
+        'strides'            : 1,
+        'padding'            : 'same',
+        'kernel_initializer' : keras.initializers.normal(mean=0.0, stddev=0.01, seed=None),
+        'bias_initializer'   : 'zeros'
+    }
+
+    if keras.backend.image_data_format() == 'channels_first':
+        inputs  = keras.layers.Input(shape=(pyramid_feature_size, None, None))
+    else:
+        inputs  = keras.layers.Input(shape=(None, None, pyramid_feature_size))
+    outputs = inputs
+    for i in range(4):
+        outputs = keras.layers.Conv2D(
+            filters=regression_feature_size,
+            activation='relu',
+            name='pyramid_pose_{}'.format(i),
+            **options
+        )(outputs)
+
+    outputs = keras.layers.Conv2D(num_anchors * num_values, name='pyramid_pose', **options)(outputs)
+    if keras.backend.image_data_format() == 'channels_first':
+        outputs = keras.layers.Permute((2, 3, 1), name='pyramid_pose_permute')(outputs)
+
+
+    outputs = keras.layers.Reshape((-1, 10), name='pyramid_reshape')(outputs)
+    rot = layers.ExtractRotation()(outputs)
+    trans = layers.ExtractTranslation()(outputs)
+    #rot = keras.layers.Reshape((-1, 3,3), name='pyramid_rotation_reshape')(rot)
+    #inputs = keras.layers.Reshape((-1), name="reshape")(inputs)
+    #inputs_mat = keras.layers.Reshape((-1, 3, 3))(inputs)
+    #rot = layers.Reorthogonalize()(rot)
+    #rot = layers.ScaleDeterminant()(rot)
+    rot = keras.layers.Reshape((-1, 9))(rot)
+    trans = keras.layers.Reshape((-1, 1), name='pyramid_translation_reshape')(trans)
+
+    return keras.models.Model(inputs=inputs, outputs=[rot, trans], name=name)
+
 
 def __create_pyramid_features(backbone_layers, pyramid_levels, feature_size=256):
     """ Creates the FPN layers on top of the backbone features.
@@ -213,9 +268,7 @@ def pose_submodels(num_classes, num_anchors):
     return [
         ('regression', default_regression_model(4, num_anchors)),
         ('classification', default_classification_model(num_classes, num_anchors)),
-        ('rotation', default_regression_model(9,num_anchors, name='rotation_submodel')),
-        ('translation', default_regression_model(1, num_anchors, name='translation_submodel'))
-    ]
+        ('pose', default_pose_model(10, num_anchors, name='pose_submodel'))]
 
 
 def __build_model_pyramid(name, model, features):
@@ -229,8 +282,22 @@ def __build_model_pyramid(name, model, features):
     Returns
         A tensor containing the response from the submodel on the FPN features.
     """
+
     return keras.layers.Concatenate(axis=1, name=name)([model(f) for f in features])
 
+def __build_posemodel_pyramid(name, model, features): # Remove name at some point
+    """ Applies a single submodel to each FPN level.
+
+    Args
+        name     : Name of the submodel.
+        model    : The submodel to evaluate.
+        features : The FPN features.
+
+    Returns
+        A tensor containing the response from the submodel on the FPN features.
+    """
+
+    return keras.layers.Concatenate(axis=1, name="rotation")([model(f)[0] for f in features]), keras.layers.Concatenate(axis=1, name="translation")([model(f)[1] for f in features])
 
 def __build_pyramid(models, features):
     """ Applies all submodels to each FPN level.
@@ -242,7 +309,24 @@ def __build_pyramid(models, features):
     Returns
         A list of tensors, one for each submodel.
     """
+
     return [__build_model_pyramid(n, m, features) for n, m in models]
+
+
+
+def __build_pyramid_rotinaNet(models, features):
+    pyramid = []
+
+    for n, m in models:
+        if type(m(features[0])) is list:
+            rot, pos = __build_posemodel_pyramid(n, m, features)
+            pyramid.append(rot)
+            pyramid.append(pos)
+        else:
+            pyramid.append(__build_model_pyramid(n, m, features))
+
+    return pyramid
+
 
 
 def __build_anchors(anchor_parameters, features):
@@ -328,7 +412,7 @@ def retinanet(
     feature_list = [features['P{}'.format(p)] for p in pyramid_levels]
 
     # for all pyramid levels, run available submodels
-    pyramids = __build_pyramid(submodels, feature_list)
+    pyramids = __build_pyramid_rotinaNet(submodels, feature_list)
 
     return keras.models.Model(inputs=inputs, outputs=pyramids, name=name)
 

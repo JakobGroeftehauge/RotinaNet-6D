@@ -91,9 +91,11 @@ def anchor_targets_bbox(
     labels_batch      = np.zeros((batch_size, anchors.shape[0], num_classes + 1), dtype=keras.backend.floatx())
     rotation_batch   = np.zeros((batch_size, anchors.shape[0], 9 + 1), dtype=keras.backend.floatx())
     translation_batch   = np.zeros((batch_size, anchors.shape[0], 3 + 1), dtype=keras.backend.floatx())
+
     # compute labels and regression targets
     for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
         if annotations['bboxes'].shape[0]:
+
             # obtain indices of gt annotations with the greatest overlap
             positive_indices, ignore_indices, argmax_overlaps_inds = compute_gt_annotations(anchors, annotations['bboxes'], negative_overlap, positive_overlap)
 
@@ -110,24 +112,23 @@ def anchor_targets_bbox(
             translation_batch[index, positive_indices, -1] = 1
 
             # compute target class labels
-
             labels_batch[index, positive_indices, annotations['labels'][argmax_overlaps_inds[positive_indices]].astype(int)] = 1
 
             regression_batch[index, :, :-1] = bbox_transform(anchors, annotations['bboxes'][argmax_overlaps_inds, :])
-            #print('ro: ',annotations['rotations'][argmax_overlaps_inds, :])
-            #print('t: ',annotations['translations'][argmax_overlaps_inds, :])
             rotation_batch[index, :,:-1] = annotations['rotations'][argmax_overlaps_inds, :]
             translation_batch[index, :,:-1] = annotations['translations'][argmax_overlaps_inds, :]
+
         # ignore annotations outside of image
         if image.shape:
             anchors_centers = np.vstack([(anchors[:, 0] + anchors[:, 2]) / 2, (anchors[:, 1] + anchors[:, 3]) / 2]).T
             indices = np.logical_or(anchors_centers[:, 0] >= image.shape[1], anchors_centers[:, 1] >= image.shape[0])
 
             labels_batch[index, indices, -1]     = -1
+            regression_batch[index, indices, -1] = -1
             rotation_batch[index, indices, -1] = -1
             translation_batch[index, indices, -1] = -1
 
-    return regression_batch, labels_batch, rotation_batch, translation_batch[:, :, -2:]  
+    return regression_batch, labels_batch, rotation_batch, translation_batch[:,:,-2:]
 
 
 def compute_gt_annotations(

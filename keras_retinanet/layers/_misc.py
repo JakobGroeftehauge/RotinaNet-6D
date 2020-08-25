@@ -19,6 +19,7 @@ from .. import backend
 from ..utils import anchors as utils_anchors
 
 import numpy as np
+import tensorflow as tf
 
 
 class Anchors(keras.layers.Layer):
@@ -183,3 +184,62 @@ class ClipBoxes(keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         return input_shape[1]
+
+class ExtractRotation(keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs, **kwargs):
+        return inputs[:, :, 0:9]
+
+    def compute_output_shape(self, input_shape):
+        print(input_shape)
+        x, y, z = input_shape
+        return (x, y, 9)
+
+class ExtractTranslation(keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs, **kwargs):
+        return inputs[:, :, 9:]
+
+    def compute_output_shape(self, input_shape):
+        x, y, z = input_shape
+        return (x, y, 1)
+
+class Reorthogonalize(keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs, **kwargs):
+        #x, y, z = np.shape(inputs)
+        shape = inputs.shape
+        U, S, V_t = tf.linalg.svd(inputs)
+        det = tf.sign(tf.linalg.det(tf.matmul(tf.transpose(V_t), tf.transpose(U))))
+        # fix tf.constant -> det
+        #rt_rotation = tf.matmul(tf.matmul(tf.transpose(V_t), tf.repeat(tf.constant([[1,0,0],[0,1,0],[0,0,det]]), shape[:-2])), tf.transpose(U))
+        ort_rotation = tf.matmul(tf.transpose(V_t), tf.transpose(U))
+        return ort_rotation
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+
+class ScaleDeterminant(keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs, **kwargs):
+        a, b, c, d = inputs.shape
+        print("inputs: ", inputs.shape)
+        det = tf.reshape(tf.linalg.det(inputs), [-1])
+        print("det:", det.shape)
+        inputs = tf.reshape(inputs, (-1, 9))
+        inputs = tf.math.multiply(inputs, tf.divide(1.0, tf.transpose(det)))
+        #inputs = tf.reshape(inputs, (a, b, 3, 3))
+        print("inputs after: ", inputs.shape)
+        return inputs
+
+    def compute_output_shape(self, input_shape):
+        return [input_shape[0], input_shape[1], 9]
