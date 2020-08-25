@@ -67,8 +67,8 @@ def draw_boxes(image, boxes, color, thickness=2):
         draw_box(image, b, color, thickness=thickness)
 
 
-def draw_detections(image, boxes, scores, labels, color=None, label_to_name=None, score_threshold=0.5):
-    """ Draws detections in an image.
+def draw_bbox_detections(image, boxes, scores, labels, color=None, label_to_name=None, score_threshold=0.5):
+    """ Draws bbox detections in an image.
 
     # Arguments
         image           : The image to draw on.
@@ -90,8 +90,8 @@ def draw_detections(image, boxes, scores, labels, color=None, label_to_name=None
         draw_caption(image, boxes[i, :], caption)
 
 
-def draw_annotations(image, annotations, color=(0, 255, 0), label_to_name=None):
-    """ Draws annotations in an image.
+def draw_bbox_annotations(image, annotations, color=(0, 255, 0), label_to_name=None):
+    """ Draws bbox annotations in an image.
 
     # Arguments
         image         : The image to draw on.
@@ -112,3 +112,24 @@ def draw_annotations(image, annotations, color=(0, 255, 0), label_to_name=None):
         caption = '{}'.format(label_to_name(label) if label_to_name else label)
         #draw_caption(image, annotations['bboxes'][i], caption)
         draw_box(image, annotations['bboxes'][i], color=c)
+
+
+def draw_pose_detections(image, boxes, scores, labels, rotations, translations, color=(0, 255, 0), label_to_name=None):
+    """ Draws pose detections in an image.
+
+    # Arguments
+        image           : The image to draw on.
+        boxes           : A [N, 4] matrix (x1, y1, x2, y2).
+        scores          : A list of N classification scores.
+        labels          : A list of N labels.
+        rotations       : A [N, 9] matrix 
+        translations    : A [N, 3] matrix (x, y, z)
+        color           : The color of the boxes. By default the color from keras_retinanet.utils.colors.label_color will be used.
+        label_to_name   : (optional) Functor for mapping a label to a name.
+    """
+    max_idx = np.argmax(scores)
+    draw_box(image, boxes[max_idx, :], color=color)
+
+    # draw depth prediction
+    depth = 'Depth: {0:.6f}'.format(translations[max_idx][0])
+    draw_caption(image, boxes[max_idx, :], depth)

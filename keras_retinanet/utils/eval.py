@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 from .anchors import compute_overlap
-from .visualization import draw_detections, draw_annotations
+from .visualization import draw_bbox_detections, draw_bbox_annotations, draw_pose_detections
 
 import keras
 import numpy as np
@@ -110,6 +110,12 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
     all_inferences = [None for i in range(generator.size())]
 
+    # Create subdirectories in save path for bbox and pose visualizations
+    if save_path is not None and not os.path.exists(save_path + '/bbox'):
+        os.makedirs(save_path + '/bbox')
+    if save_path is not None and not os.path.exists(save_path + '/pose'):
+        os.makedirs(save_path + '/pose')
+
     for i in progressbar.progressbar(range(generator.size()), prefix='Running network: '):
         raw_image    = generator.load_image(i)
         image        = generator.preprocess_image(raw_image.copy())
@@ -145,10 +151,15 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         if save_path is not None:
             # Copy() is necessary, else the boxes will not be printed on the saved images.
-            draw_image = raw_image.copy()
-            draw_annotations(draw_image, generator.load_annotations(i), label_to_name=generator.label_to_name)
-            draw_detections(draw_image, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name, score_threshold=score_threshold)
-            cv2.imwrite(os.path.join(save_path, '{}.png'.format(i)), draw_image)
+            draw_image_bbox = raw_image.copy()
+            draw_bbox_annotations(draw_image_bbox, generator.load_annotations(i), label_to_name=generator.label_to_name)
+            draw_bbox_detections(draw_image_bbox, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name, score_threshold=score_threshold)
+            cv2.imwrite(os.path.join(save_path + '/bbox', '{}.png'.format(i)), draw_image_bbox)
+            
+            draw_image_pose = raw_image.copy()
+            draw_pose_detections(draw_image_pose, image_boxes, image_scores, image_labels, image_rotations, image_translations,label_to_name=generator.label_to_name)
+            cv2.imwrite(os.path.join(save_path + '/pose', '{}.png'.format(i)), draw_image_pose)
+
 
         # copy detections to all_detections
         for label in range(generator.num_classes()):
