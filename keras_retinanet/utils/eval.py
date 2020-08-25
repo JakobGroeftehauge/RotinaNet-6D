@@ -63,7 +63,7 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
     detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
     #U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
-    #det = np.round(np.linalg.det(np.matmul(V_t.T,U.T)))
+    #det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
     #detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
@@ -157,7 +157,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
             cv2.imwrite(os.path.join(save_path + '/bbox', '{}.png'.format(i)), draw_image_bbox)
             
             draw_image_pose = raw_image.copy()
-            draw_pose_detections(draw_image_pose, image_boxes, image_scores, image_labels, image_rotations, image_translations,label_to_name=generator.label_to_name)
+            draw_pose_detections(draw_image_pose, image_boxes, image_scores, image_labels, image_rotations, image_translations, label_to_name=generator.label_to_name)
             cv2.imwrite(os.path.join(save_path + '/pose', '{}.png'.format(i)), draw_image_pose)
 
 
@@ -167,8 +167,8 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
                 continue
 
             all_bbox_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
-            all_translation_detections[i][label] = image_translations[image_detections[:, -1] == label, :]
-            all_rotation_detections[i][label] = image_rotations[image_detections[:, -1] == label, :]
+            all_translation_detections[i][label] = image_translations[image_detections[:, -1] == label, :-1]
+            all_rotation_detections[i][label] = image_rotations[image_detections[:, -1] == label, :-1]
 
         all_inferences[i] = inference_time
 

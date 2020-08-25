@@ -130,7 +130,7 @@ def anchor_targets_bbox(
     return regression_batch, labels_batch, rotation_batch, translation_batch[:, :, -2:]  
 
 
-def compute_gt_annotations(
+def compute_overlap(
     anchors,
     annotations,
     negative_overlap=0.4,
