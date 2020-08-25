@@ -15,12 +15,13 @@ limitations under the License.
 """
 
 from .anchors import compute_overlap
-from .visualization import draw_detections, draw_annotations
+from .visualization import draw_bbox_detections, draw_bbox_annotations, draw_pose_detections
 
 import keras
 import numpy as np
 import os
 import time
+import csv
 
 import cv2
 import progressbar
@@ -56,23 +57,31 @@ def _compute_ap(recall, precision):
     return ap
 
 def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
-            detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold):
+            detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_depth=False):
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
-    detected_pose_rotation = detected_pose_rotation.reshape((3,3))
+    detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
+    #detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
-    U, S, V_t = np.linalg.svd(np.transpose(detected_pose_rotation), full_matrices=True)
-    det = np.round(np.linalg.det(np.matmul(V_t.T,U.T)))
+    U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
+    det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
     newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
-    #newPL_ori = newPL_ori + gt_pose_translation*1000
+    newPL_ori = newPL_ori + gt_pose_translation #+ np.tile(np.array(gt_pose_translation), (38, 1))
 
     newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
-    #newPL = newPL + detected_pose_translation*1000
+    newPL = newPL + detected_pose_translation #+ np.tile(np.array(detected_pose_translation), (38, 1))
+
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
     meanValue = np.mean( calc )
 
+    if print_depth == True:
+        pred_file = open("depth_preds.csv", "a")
+        pred_writer = csv.writer(pred_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        pred_writer.writerow([gt_pose_translation[2], detected_pose_translation[2]])
+        pred_file.close()
+    
     if( meanValue < distance_diag*diag_threshold):
         return meanValue, 1
     else:
@@ -101,6 +110,12 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
     all_inferences = [None for i in range(generator.size())]
 
+    # Create subdirectories in save path for bbox and pose visualizations
+    if save_path is not None and not os.path.exists(save_path + '/bbox'):
+        os.makedirs(save_path + '/bbox')
+    if save_path is not None and not os.path.exists(save_path + '/pose'):
+        os.makedirs(save_path + '/pose')
+
     for i in progressbar.progressbar(range(generator.size()), prefix='Running network: '):
         raw_image    = generator.load_image(i)
         image        = generator.preprocess_image(raw_image.copy())
@@ -111,7 +126,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         # run network
         start = time.time()
-        boxes, scores, labels, transformations = model.predict_on_batch(np.expand_dims(image, axis=0))[:4] #RotinaNet-6D #[:3]
+        boxes, scores, labels, rotations, translations = model.predict_on_batch(np.expand_dims(image, axis=0))[:5] #RotinaNet-6D #[:3]
         inference_time = time.time() - start
 
         # correct boxes for image scale
@@ -128,18 +143,23 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         # select detections
         image_boxes         = boxes[0, indices[scores_sort], :]
-        image_rotations     = transformations[0,indices[scores_sort],:9]
-        image_translations  = transformations[0,indices[scores_sort],9:]
+        image_rotations     = rotations[0,indices[scores_sort],:]
+        image_translations  = translations[0,indices[scores_sort],:]
         image_scores        = scores[scores_sort]
         image_labels        = labels[0, indices[scores_sort]]
         image_detections    = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
 
         if save_path is not None:
             # Copy() is necessary, else the boxes will not be printed on the saved images.
-            draw_image = raw_image.copy()
-            draw_annotations(draw_image, generator.load_annotations(i), label_to_name=generator.label_to_name)
-            draw_detections(draw_image, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name, score_threshold=score_threshold)
-            cv2.imwrite(os.path.join(save_path, '{}.png'.format(i)), draw_image)
+            draw_image_bbox = raw_image.copy()
+            draw_bbox_annotations(draw_image_bbox, generator.load_annotations(i), label_to_name=generator.label_to_name)
+            draw_bbox_detections(draw_image_bbox, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name, score_threshold=score_threshold)
+            cv2.imwrite(os.path.join(save_path + '/bbox', '{}.png'.format(i)), draw_image_bbox)
+            
+            draw_image_pose = raw_image.copy()
+            draw_pose_detections(draw_image_pose, image_boxes, image_scores, image_labels, image_rotations, image_translations, label_to_name=generator.label_to_name)
+            cv2.imwrite(os.path.join(save_path + '/pose', '{}.png'.format(i)), draw_image_pose)
+
 
         # copy detections to all_detections
         for label in range(generator.num_classes()):
@@ -193,7 +213,9 @@ def evaluate(
     diag_threshold=0.1,
     score_threshold=0.05,
     max_detections=100,
-    save_path=None
+    save_path=None, 
+    print_depth_data=False
+
 ):
     """ Evaluate a given dataset using a given model.
 
@@ -272,12 +294,21 @@ def evaluate(
                 if idx == 0:
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
-                    avg_dist, accepted_dist = _test_ADD(translation_annotations[0], rotation_annotations[0], t, r, pt_cloud, diag_distance, diag_threshold)
+                    # translation vector coordinates
+                    t_z = (t[0] * 0.4219 + 0.6549) * 1000 # convert from m to mm
+                    trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, t_z])
+                    
+                    anno_trans = np.array([translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][2]*0.4219 + 0.649 ])*1000
+                    #print("trans", trans)
+                    #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
+                    avg_dist, accepted_dist = _test_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
                     avg_distances.append(avg_dist)
+
                     if accepted_dist:
                         accepted_ADD_annotations += 1
                     total_detections += 1
         CEP_ratio = accepted_ADD_annotations / np.maximum(total_detections, np.finfo(np.float64).eps)
+
         # no annotations -> AP for this class is 0 (is this correct?)
         if num_annotations == 0:
             average_precisions[label] = 0, 0
