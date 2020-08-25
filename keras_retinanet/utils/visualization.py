@@ -131,5 +131,5 @@ def draw_pose_detections(image, boxes, scores, labels, rotations, translations, 
     draw_box(image, boxes[max_idx, :], color=color)
 
     # draw depth prediction
-    depth = 'Depth: {0:.6f}'.format(translations[max_idx][0])
+    depth = 'Depth: {0:.6f}'.format(translations[max_idx][0]* 0.4219 + 0.6549)
     draw_caption(image, boxes[max_idx, :], depth)
