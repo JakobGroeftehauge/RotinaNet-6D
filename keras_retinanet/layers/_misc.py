@@ -183,3 +183,26 @@ class ClipBoxes(keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         return input_shape[1]
+
+class ExtractRotation(keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs, **kwargs):
+        return inputs[:, :, 0:9]
+
+    def compute_output_shape(self, input_shape):
+        print(input_shape)
+        x, y, z = input_shape
+        return (x, y, 9)
+
+class ExtractTranslation(keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs, **kwargs):
+        return inputs[:, :, 9:]
+
+    def compute_output_shape(self, input_shape):
+        x, y, z = input_shape
+        return (x, y, 1)
