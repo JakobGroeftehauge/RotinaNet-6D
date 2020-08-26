@@ -298,7 +298,7 @@ def evaluate(
                     t_z = (t[0] * 0.4219 + 0.6549) * 1000 # convert from m to mm
                     trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, t_z])
                     
-                    anno_trans = np.array([translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][2]*0.4219 + 0.649 ])*1000
+                    anno_trans = np.array([translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][2]*0.4219 + 0.6549 ])*1000
                     #print("trans", trans)
                     #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
                     avg_dist, accepted_dist = _test_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
