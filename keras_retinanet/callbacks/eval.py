@@ -97,18 +97,19 @@ class Evaluate(keras.callbacks.Callback):
         if self.verbose == 1:
             print('mAP: {:.4f}'.format(self.mean_ap))
 
-       # RotinanetNet-6D
+        # RotinaNet-6D
         if self.verbose == 1:
             for label, avg_dist in avg_dists.items():
                 print('Mean average 3D distances of class ', self.generator.label_to_name(label), ': {:.4f}'.format(avg_dist))
 
-
+        # RotinaNet-6D
         ADD_scores = []
         for label, CEP_ratio in CEP_ratios.items():
             if self.verbose == 1:
                 print('Percentage of correctly estimated (ADD) poses of class ', self.generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
             ADD_scores.append(CEP_ratio)
 
+        # RotinaNet-6D
         if self.tensorboard:
             import tensorflow as tf
             if tf.version.VERSION < '2.0.0' and self.tensorboard.writer:

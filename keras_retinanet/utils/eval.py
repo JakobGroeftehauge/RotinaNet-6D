@@ -56,13 +56,28 @@ def _compute_ap(recall, precision):
     ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
 
-def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
+# RotinaNet-6D
+def _test_pose_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
             detected_pose_rotation, point_cloud_test, distance_diag, diag_threshold, print_depth=False):
+    """ Compute the mean average distance between the gt and predeicted points clouds. 
+
+    # Arguments
+        gt_pose_translation,        :
+        gt_pose_rotation,           :
+        detected_pose_translation,  :
+        detected_pose_rotation,     :
+        point_cloud_test,           :
+        distance_diag,              :
+        diag_threshold,             :
+        print_depth=False           :
+    # Returns
+        Mean Averge Distance, accepted (bool)
+    """
     gt_pose_rotation = gt_pose_rotation.reshape((3,3))
-    detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3)))
+    detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3))) # Not known why the transpose is necesarry - FIGURE OUT!!
     #detected_pose_rotation = detected_pose_rotation.reshape((3,3))
 
-    U, S, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
+    U, _, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
     det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
     detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
 
@@ -74,7 +89,7 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
 
 
     calc = np.sqrt( np.sum( (newPL - newPL_ori) * (newPL - newPL_ori), axis = 1) )
-    meanValue = np.mean( calc )
+    meanAvgDist = np.mean( calc )
 
     if print_depth == True:
         pred_file = open("depth_preds.csv", "a")
@@ -82,10 +97,10 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
         pred_writer.writerow([gt_pose_translation[2], detected_pose_translation[2]])
         pred_file.close()
     
-    if( meanValue < distance_diag*diag_threshold):
-        return meanValue, 1
+    if( meanAvgDist < distance_diag*diag_threshold):
+        return meanAvgDist, 1
     else:
-        return meanValue, 0
+        return meanAvgDist, 0
     return
 
 
@@ -156,6 +171,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
             draw_bbox_detections(draw_image_bbox, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name, score_threshold=score_threshold)
             cv2.imwrite(os.path.join(save_path + '/bbox', '{}.png'.format(i)), draw_image_bbox)
             
+            # RotinaNet-6D -> Print predicted bbox + depth prediction. 
             draw_image_pose = raw_image.copy()
             draw_pose_detections(draw_image_pose, image_boxes, image_scores, image_labels, image_rotations, image_translations, label_to_name=generator.label_to_name)
             cv2.imwrite(os.path.join(save_path + '/pose', '{}.png'.format(i)), draw_image_pose)
@@ -233,7 +249,7 @@ def evaluate(
     all_bbox_detections, all_translation_detections, all_rotation_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
     all_bbox_annotations, all_rotation_annotations, all_translation_annotations  = _get_annotations(generator)
     average_precisions = {}
-    CEP_ratios = {}
+    CEP_ratios = {} # CEP -> Correctly Estimated Poses 
     mean_avg_distances = {}
     #print('all bbox', all_bbox_detections, 'all_translations', all_translation_detections, 'all_rotation_detections', all_rotation_detections)
     # all_detections = pickle.load(open('all_detections.pkl', 'rb'))
@@ -267,7 +283,6 @@ def evaluate(
             num_annotations         += bbox_annotations.shape[0]
             detected_annotations    = []
 
-            #print('bbox:', bbox_detections, ' rot: ', rotation_detections, ' trans: ', translation_detections)
             for idx, (d, r, t) in enumerate(zip(bbox_detections, rotation_detections, translation_detections)):
                 scores = np.append(scores, d[4])
 
@@ -288,10 +303,9 @@ def evaluate(
                     false_positives = np.append(false_positives, 1)
                     true_positives  = np.append(true_positives, 0)
 
-                # Change to accomodate multiple objects of same class i one image.
-
-                # Only evaluate top-1 prediction # RotinaNet-6D FIX!!! NOT AS INTENDED
-                if idx == 0:
+                # Evaluate pose predictions 
+                    # FUTURE: Change to accomodate multiple objects of same class i one image.
+                if idx == 0:  # Only evaluate top-1 prediction # RotinaNet-6D 
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
                     # translation vector coordinates
@@ -301,7 +315,7 @@ def evaluate(
                     anno_trans = np.array([translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][2]*0.4219 + 0.6549 ])*1000
                     #print("trans", trans)
                     #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
-                    avg_dist, accepted_dist = _test_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
+                    avg_dist, accepted_dist = _test_pose_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
                     avg_distances.append(avg_dist)
 
                     if accepted_dist:

@@ -130,7 +130,7 @@ def main(args=None):
     if args.convert_model:
         model = models.convert_model(model, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
 
-    average_precisions, CEP_ratios, _, inference_time = evaluate(
+    average_precisions, CEP_ratios, _  , inference_time = evaluate(
         generator,
         model,
         iou_threshold=args.iou_threshold,
@@ -138,7 +138,7 @@ def main(args=None):
         score_threshold=args.score_threshold,
         max_detections=args.max_detections,
         save_path=args.save_path, 
-        print_depth_data=True
+        print_depth_data=True # RotinaNet-6D
     )
 
 
