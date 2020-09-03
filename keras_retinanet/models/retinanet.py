@@ -181,27 +181,12 @@ def __create_pyramid_features(backbone_layers, pyramid_levels, feature_size=256)
     return output_layers
 
 
+
+
 def default_submodels(num_classes, num_anchors):
     """ Create a list of default submodels used for object detection.
 
-    The default submodels contains a regression submodel and a classification submodel.
-
-    Args
-        num_classes : Number of classes to use.
-        num_anchors : Number of base anchors.
-
-    Returns
-        A list of tuple, where the first element is the name of the submodel and the second element is the submodel itself.
-    """
-    return [
-        ('regression', default_regression_model(4, num_anchors)),
-        ('classification', default_classification_model(num_classes, num_anchors))
-    ]
-
-def pose_submodels(num_classes, num_anchors):
-    """ Create a list of default submodels used for object detection.
-
-    The default submodels contains a regression submodel and a classification submodel.
+    The default submodels contains a regression submodel, rotations submodel, (translations submodel) and a classification submodel.
 
     Args
         num_classes : Number of classes to use.
@@ -213,8 +198,8 @@ def pose_submodels(num_classes, num_anchors):
     return [
         ('regression', default_regression_model(4, num_anchors)),
         ('classification', default_classification_model(num_classes, num_anchors)),
-        ('rotation', default_regression_model(9,num_anchors, name='rotation_submodel')),
-        ('translation', default_regression_model(1, num_anchors, name='translation_submodel'))
+        ('rotation', default_regression_model(9,num_anchors, name='rotation_submodel')), # RotinaNet-6D
+        ('translation', default_regression_model(1, num_anchors, name='translation_submodel')) # RotinaNet-6D
     ]
 
 
@@ -311,8 +296,7 @@ def retinanet(
         num_anchors = AnchorParameters.default.num_anchors()
 
     if submodels is None:
-        #submodels = default_submodels(num_classes, num_anchors)
-        submodels = pose_submodels(num_classes, num_anchors)
+        submodels = default_submodels(num_classes, num_anchors)
 
     if pyramid_levels is None:
         pyramid_levels = [3, 4, 5, 6, 7]
