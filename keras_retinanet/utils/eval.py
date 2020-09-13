@@ -306,7 +306,7 @@ def evaluate(
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
                     # translation vector coordinates
-                    depth = calculate_depth(d, r, pt_cloud)
+                    depth = calculate_depth(d[:4], r, pt_cloud)
                     trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, depth])
                     
                     anno_trans = np.array([translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][2]*0.4219 + 0.6549 ])*1000
