@@ -3,6 +3,8 @@ import numpy as np
 
 def calculate_depth(bbox, rotation_matrix, pt_cloud, cp=-1):
     # Find the coordinates of the bbox center point
+
+    rotation_matrix = rotation_matrix.reshape((3,3))
     x1, y1, x2, y2 = bbox
     center_x = (x2 + x1)/2.0
     center_y = (y2 + y1)/2.0
