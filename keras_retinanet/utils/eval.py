@@ -171,9 +171,9 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
             cv2.imwrite(os.path.join(save_path + '/bbox', '{}.png'.format(i)), draw_image_bbox)
             
             # RotinaNet-6D -> Print predicted bbox + depth prediction. 
-            draw_image_pose = raw_image.copy()
-            draw_pose_detections(draw_image_pose, image_boxes, image_scores, image_labels, image_rotations, image_translations, label_to_name=generator.label_to_name)
-            cv2.imwrite(os.path.join(save_path + '/pose', '{}.png'.format(i)), draw_image_pose)
+            #draw_image_pose = raw_image.copy()
+            #draw_pose_detections(draw_image_pose, image_boxes, image_scores, image_labels, image_rotations, image_translations, label_to_name=generator.label_to_name)
+            #cv2.imwrite(os.path.join(save_path + '/pose', '{}.png'.format(i)), draw_image_pose)
 
 
         # copy detections to all_detections
