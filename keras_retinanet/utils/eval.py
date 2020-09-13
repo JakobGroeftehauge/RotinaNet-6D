@@ -16,7 +16,7 @@ limitations under the License.
 
 from .anchors import compute_overlap
 from .visualization import draw_bbox_detections, draw_bbox_annotations, draw_pose_detections
-
+from .calc_depth import calculate_depth
 import keras
 import numpy as np
 import os
@@ -309,11 +309,11 @@ def evaluate(
                     pt_cloud, diag_distance = generator.name_to_pt_cloud(generator.label_to_name(label))
 
                     # translation vector coordinates
-                    t_z = (t[0] * 0.4219 + 0.6549) * 1000 # convert from m to mm
-                    trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, t_z])
+                    depth = calculate_depth(d, r, pt_cloud)
+                    trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, depth])
                     
                     anno_trans = np.array([translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][2]*0.4219 + 0.6549 ])*1000
-                    #print("trans", trans)
+                    
                     #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
                     avg_dist, accepted_dist = _test_pose_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
                     avg_distances.append(avg_dist)
