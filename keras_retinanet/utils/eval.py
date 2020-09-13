@@ -280,7 +280,7 @@ def evaluate(
             num_annotations         += bbox_annotations.shape[0]
             detected_annotations    = []
 
-            for idx, (d, r) in enumerate(zip(bbox_detections, rotation_detections)):
+            for idx, (d, r) in enumerate(zip(bbox_detections)):
                 scores = np.append(scores, d[4])
 
                 if bbox_annotations.shape[0] == 0:
