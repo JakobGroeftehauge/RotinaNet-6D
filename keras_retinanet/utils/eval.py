@@ -141,7 +141,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         # run network
         start = time.time()
-        boxes, scores, labels, rotations, translations = model.predict_on_batch(np.expand_dims(image, axis=0))[:5] #RotinaNet-6D #[:3]
+        boxes, scores, labels, rotations = model.predict_on_batch(np.expand_dims(image, axis=0))[:4] #RotinaNet-6D #[:3]
         inference_time = time.time() - start
 
         # correct boxes for image scale
@@ -159,7 +159,6 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         # select detections
         image_boxes         = boxes[0, indices[scores_sort], :]
         image_rotations     = rotations[0,indices[scores_sort],:]
-        image_translations  = translations[0,indices[scores_sort],:]
         image_scores        = scores[scores_sort]
         image_labels        = labels[0, indices[scores_sort]]
         image_detections    = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
@@ -183,12 +182,11 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
                 continue
 
             all_bbox_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
-            all_translation_detections[i][label] = image_translations[image_detections[:, -1] == label, :]
             all_rotation_detections[i][label] = image_rotations[image_detections[:, -1] == label, :]
 
         all_inferences[i] = inference_time
 
-    return all_bbox_detections, all_translation_detections, all_rotation_detections, all_inferences
+    return all_bbox_detections, all_rotation_detections, all_inferences
 
 
 def _get_annotations(generator):
@@ -246,7 +244,7 @@ def evaluate(
         A dict mapping class names to mAP scores.
     """
     # gather all detections and annotations
-    all_bbox_detections, all_translation_detections, all_rotation_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
+    all_bbox_detections, all_rotation_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
     all_bbox_annotations, all_rotation_annotations, all_translation_annotations  = _get_annotations(generator)
     average_precisions = {}
     CEP_ratios = {} # CEP -> Correctly Estimated Poses 
@@ -275,7 +273,6 @@ def evaluate(
         for i in range(generator.size()):
             bbox_detections         = all_bbox_detections[i][label]
             rotation_detections     = all_rotation_detections[i][label]
-            translation_detections  = all_translation_detections[i][label]
             bbox_annotations        = all_bbox_annotations[i][label]
             rotation_annotations    = all_rotation_annotations[i][label]
             translation_annotations = all_translation_annotations[i][label]
@@ -313,7 +310,7 @@ def evaluate(
                     trans = np.array([translation_annotations[0][0]*1000, translation_annotations[0][1]*1000, depth])
                     
                     anno_trans = np.array([translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][2]*0.4219 + 0.6549 ])*1000
-                    
+
                     #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
                     avg_dist, accepted_dist = _test_pose_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
                     avg_distances.append(avg_dist)
