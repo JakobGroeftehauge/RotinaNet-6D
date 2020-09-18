@@ -4,7 +4,12 @@ import numpy as np
 def calculate_depth(bbox, rotation_matrix, pt_cloud, cp=-1):
     # Find the coordinates of the bbox center point
 
-    rotation_matrix = rotation_matrix.reshape((3,3))
+    rotation_matrix = np.transpose(rotation_matrix.reshape((3,3)))
+
+    U, _, V_t = np.linalg.svd(rotation_matrix, full_matrices=True)
+    det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
+    rotation_matrix = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
+
     x1, y1, x2, y2 = bbox
     center_x = (x2 + x1)/2.0
     center_y = (y2 + y1)/2.0
