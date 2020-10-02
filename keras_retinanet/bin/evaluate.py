@@ -130,7 +130,7 @@ def main(args=None):
     if args.convert_model:
         model = models.convert_model(model, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
 
-    average_precisions, CEP_ratios, _, inference_time = evaluate(
+    average_precisions, CEP_add_ratios, _, CEP_proj_ratios, _,  inference_time = evaluate(
         generator,
         model,
         iou_threshold=args.iou_threshold,
@@ -151,8 +151,12 @@ def main(args=None):
         total_instances.append(num_annotations)
         precisions.append(average_precision)
 
-    for label, CEP_ratio in CEP_ratios.items():
+    for label, CEP_ratio in CEP_add_ratios.items():
         print('Percentage of correctly estimated (ADD) poses of class ', generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
+
+    for label, CEP_ratio in CEP_proj_ratios.items():
+        print('Percentage of correctly estimated (proj) poses of class ', generator.label_to_name(label), ': {:.4f}'.format(CEP_ratio))
+
 
     if sum(total_instances) == 0:
         print('No test instances found.')

@@ -88,6 +88,51 @@ def _test_ADD(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
         return meanValue, 0
     return
 
+def test_projection_error(gt_pose_translation, gt_pose_rotation, detected_pose_translation,
+            detected_pose_rotation, point_cloud_test, threshold):
+
+    # Reshape rot-matrices
+    gt_pose_rotation = gt_pose_rotation.reshape((3,3))
+    detected_pose_rotation = np.transpose(detected_pose_rotation.reshape((3,3))) # Not known why the transpose is necesarry - FIGURE OUT!!
+
+    U, _, V_t = np.linalg.svd(detected_pose_rotation, full_matrices=True)
+    det = np.sign(np.linalg.det(np.matmul(V_t.T,U.T)))
+    detected_pose_rotation = np.matmul(np.matmul(V_t.T, np.array([[1,0,0],[0,1,0],[0,0,det]])), U.T)
+
+    # Calculate the 3d position of the prediction and gt point cloud
+    newPL_ori = np.transpose( np.matmul(gt_pose_rotation, np.transpose(point_cloud_test)) )
+    newPL_ori = newPL_ori + gt_pose_translation 
+
+    newPL = np.transpose( np.matmul(detected_pose_rotation, np.transpose(point_cloud_test)) )
+    newPL = newPL + detected_pose_translation 
+
+    camera_matrix = np.array([[572.4114, 0.0, 325.2611], [0.0, 573.57043, 242.04899], [0.0, 0.0, 1.0]])
+
+    # reproject original point cloud
+    proj_ori = np.matmul(camera_matrix, np.transpose(newPL_ori))
+    proj_ori = proj_ori * 1.0/proj_ori[2, :] # Ensure scaling factor is 1
+
+    # reproject new point cloud
+    proj_new = np.matmul(camera_matrix, np.transpose(newPL))
+    proj_new = proj_new * 1.0/proj_new[2, :] # Ensure scaling factor is 1
+
+    # Calculate projections error
+    proj_diff = proj_ori - proj_new
+
+    print("proj_diff: ", proj_diff)
+
+    proj_diff = np.sqrt(np.power(proj_diff[0, :], 2.0) + np.power(proj_diff[1, :], 2.0))
+
+
+    avg_dist = np.mean(proj_diff)
+    
+    # test if average length is above 5px
+    if avg_dist > threshold: 
+        return avg_dist, 0
+    else: 
+        return avg_dist, 1
+
+    return 
 
 def _get_detections(generator, model, score_threshold=0.05, max_detections=100, save_path=None):
     """ Get the detections from the model using the generator.
@@ -233,8 +278,10 @@ def evaluate(
     all_bbox_detections, all_translation_detections, all_rotation_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
     all_bbox_annotations, all_rotation_annotations, all_translation_annotations  = _get_annotations(generator)
     average_precisions = {}
-    CEP_ratios = {}
-    mean_avg_distances = {}
+    CEP_add_ratios = {}
+    CEP_proj_ratios = {}
+    mean_avg_add_distances = {}
+    mean_avg_proj_distances = {}
     #print('all bbox', all_bbox_detections, 'all_translations', all_translation_detections, 'all_rotation_detections', all_rotation_detections)
     # all_detections = pickle.load(open('all_detections.pkl', 'rb'))
     # all_annotations = pickle.load(open('all_annotations.pkl', 'rb'))
@@ -248,13 +295,15 @@ def evaluate(
             continue
 
         accepted_ADD_annotations = 0
+        accepted_proj_annotations = 0
         total_detections = 0
 
         false_positives = np.zeros((0,))
         true_positives  = np.zeros((0,))
         scores          = np.zeros((0,))
         num_annotations = 0.0
-        avg_distances = []
+        avg_distances_add = []
+        avg_distances_proj = []
 
         for i in range(generator.size()):
             bbox_detections         = all_bbox_detections[i][label]
@@ -301,13 +350,19 @@ def evaluate(
                     anno_trans = np.array([translation_annotations[0][0], translation_annotations[0][1], translation_annotations[0][2]*0.4219 + 0.649 ])*1000
                     #print("trans", trans)
                     #avg_dist, accepted_dist = _test_ADD(translation_annotations[0] * 1000, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold)
-                    avg_dist, accepted_dist = _test_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
-                    avg_distances.append(avg_dist)
+                    avg_dist_add, accepted_add_dist = _test_ADD(anno_trans, rotation_annotations[0], trans, r, pt_cloud, diag_distance, diag_threshold, print_depth=print_depth_data)
+                    avg_distances_add.append(avg_dist_add)
 
-                    if accepted_dist:
+                    avg_dist_proj, accepted_proj_dist = test_projection_error(anno_trans, rotation_annotations[0], trans, r, pt_cloud, 5)
+                    avg_distances_proj.append(avg_dist_proj) 
+
+                    if accepted_add_dist:
                         accepted_ADD_annotations += 1
+                    if accepted_proj_dist: 
+                        accepted_proj_annotations += 1
                     total_detections += 1
-        CEP_ratio = accepted_ADD_annotations / np.maximum(total_detections, np.finfo(np.float64).eps)
+        CEP_add_ratio = accepted_ADD_annotations / np.maximum(total_detections, np.finfo(np.float64).eps) # Correctly estiamted ADD poses
+        CEP_proj_ratio = accepted_proj_annotations / np.maximum(total_detections, np.finfo(np.float64).eps)      
 
         # no annotations -> AP for this class is 0 (is this correct?)
         if num_annotations == 0:
@@ -330,10 +385,13 @@ def evaluate(
         # compute average precision
         average_precision  = _compute_ap(recall, precision)
         average_precisions[label] = average_precision, num_annotations
-        CEP_ratios[label] = CEP_ratio
-        mean_avg_distances[label] = np.mean(avg_distances)
+        CEP_add_ratios[label] = CEP_add_ratio
+        mean_avg_add_distances[label] = np.mean(avg_distances_add)
+
+        CEP_proj_ratios[label] = CEP_proj_ratio
+        mean_avg_proj_distances[label] = np.mean(avg_dist_proj)
 
     # inference time
     inference_time = np.sum(all_inferences) / generator.size()
 
-    return average_precisions, CEP_ratios, mean_avg_distances, inference_time
+    return average_precisions, CEP_add_ratios, mean_avg_add_distances, CEP_proj_ratios, mean_avg_proj_distances, inference_time
