@@ -119,7 +119,6 @@ def test_projection_error(gt_pose_translation, gt_pose_rotation, detected_pose_t
     # Calculate projections error
     proj_diff = proj_ori - proj_new
 
-    print("proj_diff: ", proj_diff)
 
     proj_diff = np.sqrt(np.power(proj_diff[0, :], 2.0) + np.power(proj_diff[1, :], 2.0))
 
